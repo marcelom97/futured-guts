@@ -10,7 +10,9 @@ export default defineEventHandler((event) => {
     const questionsStmt = db.prepare(
       "SELECT id FROM questions WHERE questionnaire_id = ?"
     );
-    const questions = questionsStmt.all(questionnaireId) as Array<{ id: number }>;
+    const questions = questionsStmt.all(questionnaireId) as Array<{
+      id: number;
+    }>;
     const questionIds = questions.map((q) => q.id);
 
     if (questionIds.length === 0) {
@@ -32,9 +34,15 @@ export default defineEventHandler((event) => {
     `);
     const responses = responsesStmt.all(...questionIds);
 
+    // Parse trait field for each response
+    const parsedResponses = responses.map((r: any) => ({
+      ...r,
+      trait: r.trait ? JSON.parse(r.trait) : [],
+    }));
+
     return {
       success: true,
-      responses,
+      responses: parsedResponses,
     };
   } catch (error) {
     throw createError({
@@ -43,4 +51,3 @@ export default defineEventHandler((event) => {
     });
   }
 });
-

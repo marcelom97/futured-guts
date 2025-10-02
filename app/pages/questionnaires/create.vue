@@ -194,14 +194,18 @@
                   <div class="grid grid-cols-2 gap-4">
                     <div>
                       <label class="block text-xs text-gray-500 mb-1"
-                        >Trait</label
+                        >Traits</label
                       >
-                      <UInput
+                      <USelectMenu
                         v-model="question.trait"
-                        placeholder="e.g., teamwork, math"
+                        :items="traitOptions"
+                        value-key="value"
+                        :search-input="false"
                         class="w-full"
                         :error="!!questionErrors[index]?.trait"
-                        @blur="validateQuestion(index)"
+                        @change="validateQuestion(index)"
+                        multiple
+                        placeholder="Select traits..."
                       />
                       <p
                         v-if="questionErrors[index]?.trait"
@@ -315,14 +319,18 @@
               Focus Areas
             </label>
             <p class="text-xs text-gray-500 mb-2">
-              Enter traits or skills you want to assess (comma-separated)
+              Select the traits or skills you want to assess
             </p>
-            <UInput
+            <USelectMenu
               v-model="aiFocusAreas"
-              placeholder="e.g., teamwork, leadership, communication, math, writing"
+              :items="traitOptions"
+              value-key="value"
+              :search-input="false"
               class="w-full"
               :error="!!aiModalErrors.focus_areas"
-              @blur="validateAIModal"
+              @change="validateAIModal"
+              multiple
+              placeholder="Select traits..."
             />
             <p
               v-if="aiModalErrors.focus_areas"
@@ -383,16 +391,18 @@
 <script setup lang="ts">
 import { z } from "zod";
 
+const toast = useToast();
+
 // Zod schemas
 const questionnaireSchema = z.object({
   title: z
     .string()
     .min(1, "Title is required")
     .max(200, "Title must be less than 200 characters"),
-  description: z
-    .string()
-    .max(1000, "Description must be less than 1000 characters")
-    .optional(),
+  description: z.union([
+    z.string().max(1000, "Description must be less than 1000 characters"),
+    z.literal(""),
+  ]),
   teacher_id: z.number().positive(),
 });
 
@@ -415,9 +425,9 @@ const questionSchema = z
       }
     ),
     trait: z
-      .string()
-      .min(1, "Trait is required")
-      .max(100, "Trait must be less than 100 characters"),
+      .array(z.string())
+      .min(1, "At least one trait must be selected")
+      .max(5, "Maximum 5 traits can be selected"),
     weight: z
       .number()
       .min(0, "Weight must be at least 0")
@@ -439,9 +449,9 @@ const questionSchema = z
 
 const aiModalSchema = z.object({
   focus_areas: z
-    .string()
-    .min(1, "Focus areas are required")
-    .max(500, "Focus areas must be less than 500 characters"),
+    .array(z.string())
+    .min(1, "At least one trait must be selected")
+    .max(5, "Maximum 5 traits can be selected"),
   num_questions: z
     .number()
     .min(3, "Must generate at least 3 questions")
@@ -459,7 +469,7 @@ const questions = ref<any[]>([]);
 const saving = ref(false);
 const generating = ref(false);
 const showAIModal = ref(false);
-const aiFocusAreas = ref("teamwork, leadership, communication");
+const aiFocusAreas = ref<string[]>(["teamwork", "leadership", "communication"]);
 const aiNumQuestions = ref(10);
 
 // Error states
@@ -556,12 +566,20 @@ const categories = [
   { label: "Personality", value: "personality" },
 ];
 
+const traitOptions = [
+  { label: "Teamwork", value: "teamwork" },
+  { label: "Leadership", value: "leadership" },
+  { label: "Communication", value: "communication" },
+  { label: "Problem Solving", value: "problem_solving" },
+  { label: "Creativity", value: "creativity" },
+];
+
 function addQuestion() {
   questions.value.push({
     question_text: "",
     question_type: "scale",
     category: "behavioral",
-    trait: "",
+    trait: [],
     weight: 1.0,
     options: [],
   });
@@ -591,22 +609,24 @@ function removeQuestion(index: number) {
 
 async function generateQuestions() {
   if (!validateAIModal()) {
+    const errors = Object.values(aiModalErrors.value);
+    toast.add({
+      title: "Validation Error",
+      description: errors.join(", "),
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
     return;
   }
 
   generating.value = true;
   try {
-    const focusAreas = aiFocusAreas.value
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s);
-
     const response = await $fetch<{ success: boolean; questions: any[] }>(
       "/api/ai/generate-questions",
       {
         method: "POST",
         body: {
-          focus_areas: focusAreas,
+          focus_areas: aiFocusAreas.value,
           num_questions: aiNumQuestions.value,
         },
       }
@@ -615,10 +635,24 @@ async function generateQuestions() {
     if (response.success && response.questions) {
       questions.value = response.questions;
       showAIModal.value = false;
+      toast.add({
+        title: "Success",
+        description: `Generated ${response.questions.length} questions successfully`,
+        color: "success",
+        icon: "i-heroicons-sparkles",
+      });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to generate questions:", error);
-    alert("Failed to generate questions. Please try again.");
+    toast.add({
+      title: "AI Generation Failed",
+      description:
+        error.data?.message ||
+        error.message ||
+        "Failed to generate questions. Please try again.",
+      color: "error",
+      icon: "i-heroicons-x-circle",
+    });
   } finally {
     generating.value = false;
   }
@@ -627,16 +661,38 @@ async function generateQuestions() {
 async function saveQuestionnaire() {
   // Validate questionnaire details
   if (!validateQuestionnaire()) {
+    const errors = Object.values(questionnaireErrors.value);
+    toast.add({
+      title: "Validation Error",
+      description: errors.join(", "),
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
     return;
   }
 
   // Validate all questions
   if (questions.value.length === 0) {
-    alert("Please add at least one question");
+    toast.add({
+      title: "No Questions",
+      description: "Please add at least one question",
+      color: "warning",
+      icon: "i-heroicons-exclamation-triangle",
+    });
     return;
   }
 
   if (!validateAllQuestions()) {
+    // Count how many questions have errors
+    const errorCount = Object.keys(questionErrors.value).filter(
+      (key) => Object.keys(questionErrors.value[parseInt(key)] || {}).length > 0
+    ).length;
+    toast.add({
+      title: "Question Validation Error",
+      description: `${errorCount} question(s) have validation errors. Please check all required fields.`,
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
     return;
   }
 
@@ -651,11 +707,32 @@ async function saveQuestionnaire() {
     });
 
     if (response.success) {
+      toast.add({
+        title: "Success",
+        description: "Questionnaire created successfully",
+        color: "success",
+        icon: "i-heroicons-check-circle",
+      });
       await navigateTo(`/questionnaires/${response.questionnaire_id}`);
+    } else {
+      toast.add({
+        title: "Error",
+        description: "Failed to create questionnaire",
+        color: "error",
+        icon: "i-heroicons-x-circle",
+      });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to save questionnaire:", error);
-    alert("Failed to save questionnaire. Please try again.");
+    toast.add({
+      title: "Error",
+      description:
+        error.data?.message ||
+        error.message ||
+        "Failed to save questionnaire. Please try again.",
+      color: "error",
+      icon: "i-heroicons-x-circle",
+    });
   } finally {
     saving.value = false;
   }

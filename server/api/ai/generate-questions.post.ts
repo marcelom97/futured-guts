@@ -18,7 +18,7 @@ const QuestionSchema = z.object({
     "technical",
     "personality",
   ]),
-  trait: z.string(),
+  trait: z.array(z.string()),
   weight: z.number().default(1.0),
   options: z.array(z.string()).optional(),
 });
@@ -42,6 +42,8 @@ export default defineEventHandler(async (event) => {
 
 Focus areas: ${focus_areas.join(", ")}
 
+Available traits to choose from: teamwork, leadership, communication, problem_solving, creativity
+
 For each question:
 - Create questions that assess specific traits from the focus areas
 - Use appropriate question types: 'scale' (1-5 rating), 'multiple_choice', 'text' (open-ended), 'yes_no', or 'ranking'
@@ -53,7 +55,7 @@ For each question:
   - 'personality': character traits, thinking styles
 - For multiple choice questions, provide 4-5 diverse options
 - Assign a default weight of 1.0 (teachers can adjust later)
-- Set the trait field to the specific trait being assessed (e.g., 'teamwork', 'leadership', 'math')
+- Set the trait field to an array of 1-3 relevant traits from the available traits list (e.g., ["teamwork", "communication"])
 
 Make questions clear, unbiased, and suitable for student team formation in educational settings.`;
 

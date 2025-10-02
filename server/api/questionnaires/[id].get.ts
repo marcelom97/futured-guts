@@ -23,10 +23,11 @@ export default defineEventHandler((event) => {
     );
     const questions = questionsStmt.all(id);
 
-    // Parse options for questions
+    // Parse options and traits for questions
     const parsedQuestions = questions.map((q: any) => ({
       ...q,
       options: q.options ? JSON.parse(q.options) : null,
+      trait: q.trait ? JSON.parse(q.trait) : [],
     }));
 
     // Get trait weights
@@ -50,4 +51,3 @@ export default defineEventHandler((event) => {
     });
   }
 });
-

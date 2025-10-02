@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
           q.question_text,
           q.question_type,
           q.category,
-          q.trait,
+          JSON.stringify(q.trait), // Store trait array as JSON
           q.weight || 1.0,
           q.options ? JSON.stringify(q.options) : null
         );
@@ -46,4 +46,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

@@ -21,8 +21,18 @@ export interface Questionnaire {
   created_at: string;
 }
 
-export type QuestionType = "scale" | "multiple_choice" | "text";
-export type QuestionCategory = "behavioral" | "hard_skill";
+export type QuestionType =
+  | "scale"
+  | "multiple_choice"
+  | "text"
+  | "yes_no"
+  | "ranking";
+export type QuestionCategory =
+  | "behavioral"
+  | "hard_skill"
+  | "soft_skill"
+  | "technical"
+  | "personality";
 
 export interface Question {
   id: number;
@@ -30,7 +40,7 @@ export interface Question {
   question_text: string;
   question_type: QuestionType;
   category: QuestionCategory;
-  trait: string;
+  trait: string[];
   weight: number;
   options?: string[]; // for multiple choice
   created_at: string;
@@ -69,4 +79,3 @@ export interface GroupingResult {
   balance_score: number;
   diversity_metrics: Record<string, number>;
 }
-
