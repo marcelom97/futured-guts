@@ -543,7 +543,7 @@ async function addStudent() {
 
   adding.value = true;
   try {
-    await $fetch("/api/students", {
+    const { data: _response } = await useLazyFetch("/api/students", {
       method: "POST",
       body: {
         ...newStudent.value,
@@ -579,9 +579,13 @@ async function openGroupsModal(student: Student) {
   studentGroups.value = [];
 
   try {
-    const response = await $fetch(`/api/students/${student.id}/groups`);
-    if (response.success) {
-      studentGroups.value = response.groups || [];
+    const { data: response } = await useLazyFetch<{
+      success: boolean;
+      groups: StudentGroup[];
+    }>(`/api/students/${student.id}/groups`);
+    
+    if (response.value?.success) {
+      studentGroups.value = response.value.groups || [];
     }
   } catch (error) {
     console.error("Failed to load student groups:", error);
@@ -607,9 +611,13 @@ async function openQuestionnairesModal(student: Student) {
   studentQuestionnaires.value = [];
 
   try {
-    const response = await $fetch(`/api/students/${student.id}/questionnaires`);
-    if (response.success) {
-      studentQuestionnaires.value = response.questionnaires || [];
+    const { data: response } = await useLazyFetch<{
+      success: boolean;
+      questionnaires: StudentQuestionnaire[];
+    }>(`/api/students/${student.id}/questionnaires`);
+    
+    if (response.value?.success) {
+      studentQuestionnaires.value = response.value.questionnaires || [];
     }
   } catch (error) {
     console.error("Failed to load student questionnaires:", error);
