@@ -111,18 +111,18 @@
     </div>
 
     <!-- Add Student Modal -->
-    <UModal v-model="showAddModal">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">Add Student</h3>
-        </template>
-
+    <UModal v-model:open="showAddModal" title="Add Student">
+      <template #body>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Name
             </label>
-            <UInput v-model="newStudent.name" placeholder="Full name" />
+            <UInput
+              v-model="newStudent.name"
+              placeholder="Full name"
+              class="w-full"
+            />
           </div>
 
           <div>
@@ -133,26 +133,33 @@
               v-model="newStudent.email"
               type="email"
               placeholder="student@example.com"
+              class="w-full"
             />
           </div>
         </div>
+      </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton @click="showAddModal = false" variant="outline">
-              Cancel
-            </UButton>
-            <UButton
-              @click="addStudent"
-              :loading="adding"
-              color="primary"
-              icon="i-heroicons-check"
-            >
-              Add Student
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+      <template #footer>
+        <div class="flex items-center justify-end gap-3">
+          <UButton
+            @click="showAddModal = false"
+            color="neutral"
+            variant="outline"
+            :disabled="adding"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            @click="addStudent"
+            :loading="adding"
+            :disabled="adding"
+            color="primary"
+            icon="i-heroicons-check"
+          >
+            {{ adding ? "Adding..." : "Add Student" }}
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>

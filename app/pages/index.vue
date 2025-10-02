@@ -199,45 +199,52 @@
     </div>
 
     <!-- Questionnaire Details Modal -->
-    <UModal v-model="showDetailsModal">
-      <UCard v-if="selectedQuestionnaire" variant="outline">
-        <template #header>
-          <h3 class="text-lg font-semibold">{{ selectedQuestionnaire.title }}</h3>
-        </template>
-        <div class="space-y-4">
+    <UModal
+      v-model:open="showDetailsModal"
+      :title="selectedQuestionnaire?.title"
+    >
+      <template #body>
+        <div v-if="selectedQuestionnaire" class="space-y-4">
           <div>
             <h4 class="font-medium text-gray-900 mb-2">Description</h4>
             <p class="text-gray-600">{{ selectedQuestionnaire.description }}</p>
           </div>
           <div>
             <h4 class="font-medium text-gray-900 mb-2">Created</h4>
-            <p class="text-gray-600">{{ new Date(selectedQuestionnaire.created_at).toLocaleDateString() }}</p>
-          </div>
-          <div class="flex gap-2 pt-4">
-            <UButton
-              :to="`/questionnaires/${selectedQuestionnaire.id}`"
-              color="primary"
-              icon="i-heroicons-eye"
-            >
-              View Details
-            </UButton>
-            <UButton
-              :to="`/questionnaires/${selectedQuestionnaire.id}/responses`"
-              variant="outline"
-              icon="i-heroicons-document-text"
-            >
-              View Responses
-            </UButton>
-            <UButton
-              :to="`/questionnaires/${selectedQuestionnaire.id}/groups`"
-              variant="soft"
-              icon="i-heroicons-user-group"
-            >
-              Generate Groups
-            </UButton>
+            <p class="text-gray-600">
+              {{
+                new Date(selectedQuestionnaire.created_at).toLocaleDateString()
+              }}
+            </p>
           </div>
         </div>
-      </UCard>
+      </template>
+
+      <template #footer>
+        <div class="flex gap-2">
+          <UButton
+            :to="`/questionnaires/${selectedQuestionnaire?.id}`"
+            color="primary"
+            icon="i-heroicons-eye"
+          >
+            View Details
+          </UButton>
+          <UButton
+            :to="`/questionnaires/${selectedQuestionnaire?.id}/responses`"
+            variant="outline"
+            icon="i-heroicons-document-text"
+          >
+            View Responses
+          </UButton>
+          <UButton
+            :to="`/questionnaires/${selectedQuestionnaire?.id}/groups`"
+            variant="soft"
+            icon="i-heroicons-user-group"
+          >
+            Generate Groups
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>
