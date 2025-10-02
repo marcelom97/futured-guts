@@ -53,6 +53,7 @@
                 v-model="studentInfo.name"
                 placeholder="Enter your full name"
                 size="lg"
+                class="w-full"
               />
             </div>
             <div>
@@ -64,6 +65,7 @@
                 type="email"
                 placeholder="Enter your email"
                 size="lg"
+                class="w-full"
               />
             </div>
           </div>
@@ -94,7 +96,7 @@
                   <span>Strongly Disagree</span>
                   <span>Strongly Agree</span>
                 </div>
-                <div class="flex gap-4 justify-center">
+                <div class="flex w-full gap-4 justify-center">
                   <label
                     v-for="value in [1, 2, 3, 4, 5]"
                     :key="value"
@@ -135,9 +137,87 @@
               <div v-else-if="question.question_type === 'text'">
                 <UTextarea
                   v-model="responses[question.id]"
+                  class="w-full"
                   placeholder="Enter your answer..."
                   :rows="4"
                 />
+              </div>
+
+              <!-- Yes/No question -->
+              <div
+                v-else-if="question.question_type === 'yes_no'"
+                class="flex gap-4"
+              >
+                <label
+                  class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 flex-1"
+                  :class="{
+                    'border-blue-500 bg-blue-50':
+                      responses[question.id] === 'Yes',
+                  }"
+                >
+                  <input
+                    v-model="responses[question.id]"
+                    type="radio"
+                    value="Yes"
+                    class="w-5 h-5 text-blue-600"
+                  />
+                  <span class="ml-3 text-lg font-medium text-gray-900"
+                    >Yes</span
+                  >
+                </label>
+                <label
+                  class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 flex-1"
+                  :class="{
+                    'border-blue-500 bg-blue-50':
+                      responses[question.id] === 'No',
+                  }"
+                >
+                  <input
+                    v-model="responses[question.id]"
+                    type="radio"
+                    value="No"
+                    class="w-5 h-5 text-blue-600"
+                  />
+                  <span class="ml-3 text-lg font-medium text-gray-900">No</span>
+                </label>
+              </div>
+
+              <!-- Ranking question -->
+              <div
+                v-else-if="question.question_type === 'ranking'"
+                class="space-y-3"
+              >
+                <p class="text-sm text-gray-600 mb-3">
+                  Rank these options from highest to lowest preference (1 =
+                  highest, {{ question.options.length }} = lowest)
+                </p>
+                <div
+                  v-for="(option, optIdx) in question.options"
+                  :key="optIdx"
+                  class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg"
+                >
+                  <div class="flex-1">
+                    <span class="text-gray-900">{{ option }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600">Rank:</label>
+                    <USelect
+                      :model-value="getRankingValue(question.id, optIdx)"
+                      @update:model-value="
+                        (val) => setRankingValue(question.id, optIdx, val)
+                      "
+                      :items="
+                        getAvailableRanks(
+                          question.id,
+                          question.options.length,
+                          optIdx
+                        )
+                      "
+                      value-key="value"
+                      class="w-20"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -176,12 +256,126 @@ const studentInfo = ref({
 
 const responses = ref<Record<number, string>>({});
 
+// Helper functions for ranking questions
+function getRankingValue(questionId: number, optionIndex: number) {
+  const rankingData = responses.value[questionId];
+  if (!rankingData) return "0";
+  try {
+    const rankings = JSON.parse(rankingData);
+    return rankings[optionIndex] || "0";
+  } catch {
+    return "0";
+  }
+}
+
+function getAvailableRanks(
+  questionId: number,
+  totalOptions: number,
+  currentOptionIndex: number
+) {
+  // Generate all possible ranks (starting from 1)
+  const allRanks = Array.from({ length: totalOptions }, (_, i) => ({
+    label: (i + 1).toString(),
+    value: (i + 1).toString(),
+  }));
+
+  // Get currently selected ranks for this question
+  const rankingData = responses.value[questionId];
+  let selectedRanks: string[] = [];
+
+  if (rankingData) {
+    try {
+      selectedRanks = JSON.parse(rankingData);
+    } catch {
+      selectedRanks = [];
+    }
+  }
+
+  // Get the current option's selected rank (if any)
+  const currentRank = selectedRanks[currentOptionIndex] || "0";
+
+  // Filter out ranks that are already selected by other options
+  const availableRanks = allRanks.filter((rank) => {
+    // Always include the current option's rank so it can be changed
+    if (rank.value === currentRank && currentRank !== "0") return true;
+    // Include ranks that are not selected by any option
+    return !selectedRanks.includes(rank.value);
+  });
+
+  // Add "0" as the first option (not selected/clear)
+  return [{ label: "-", value: "0" }, ...availableRanks];
+}
+
+function setRankingValue(
+  questionId: number,
+  optionIndex: number,
+  value: string
+) {
+  let rankings: string[] = [];
+  const existing = responses.value[questionId];
+
+  if (existing) {
+    try {
+      rankings = JSON.parse(existing);
+    } catch {
+      rankings = [];
+    }
+  }
+
+  // Get the question to know how many options there are
+  const question = questionnaire.value?.questions.find(
+    (q: any) => q.id === questionId
+  );
+  if (question && question.options) {
+    // Initialize array with correct length, default to "0" (not selected)
+    while (rankings.length < question.options.length) {
+      rankings.push("0");
+    }
+  }
+
+  // Set the value, treat "0" as not selected
+  rankings[optionIndex] = value;
+  responses.value[questionId] = JSON.stringify(rankings);
+}
+
+function isRankingComplete(questionId: number): boolean {
+  const question = questionnaire.value?.questions.find(
+    (q: any) => q.id === questionId
+  );
+  if (!question || !question.options) return false;
+
+  const rankingData = responses.value[questionId];
+  if (!rankingData) return false;
+
+  try {
+    const rankings = JSON.parse(rankingData);
+    // Check that all options have been ranked
+    if (rankings.length !== question.options.length) return false;
+    // Check that all rankings are filled (not "0" or empty)
+    if (rankings.some((r: string) => !r || r === "0")) return false;
+    // Check that all ranks are unique (excluding "0")
+    const validRanks = rankings.filter((r: string) => r !== "0");
+    const uniqueRanks = new Set(validRanks);
+    return (
+      uniqueRanks.size === validRanks.length &&
+      validRanks.length === rankings.length
+    );
+  } catch {
+    return false;
+  }
+}
+
 const isFormValid = computed(() => {
   if (!studentInfo.value.name || !studentInfo.value.email) return false;
   if (!questionnaire.value) return false;
 
   // Check all questions have responses
-  return questionnaire.value.questions.every((q: any) => responses.value[q.id]);
+  return questionnaire.value.questions.every((q: any) => {
+    if (q.question_type === "ranking") {
+      return isRankingComplete(q.id);
+    }
+    return responses.value[q.id];
+  });
 });
 
 onMounted(async () => {
