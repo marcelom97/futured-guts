@@ -112,5 +112,20 @@ function initializeDatabase(db: Database.Database) {
       UNIQUE(questionnaire_id, trait)
     )
   `);
+
+  // Insert dummy teacher if none exists
+  try {
+    const existingTeacher = db.prepare('SELECT id FROM teachers LIMIT 1').get();
+    if (!existingTeacher) {
+      const stmt = db.prepare(`
+        INSERT INTO teachers (name, email) 
+        VALUES (?, ?)
+      `);
+      const result = stmt.run('Demo Teacher', 'demo@teacher.com');
+      console.log(`Created dummy teacher with ID: ${result.lastInsertRowid}`);
+    }
+  } catch (error) {
+    console.log('Teacher creation check failed:', error);
+  }
 }
 
