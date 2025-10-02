@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <UContainer class="py-12">
       <UButton
         :to="`/questionnaires/${route.params.id}`"
         variant="ghost"
@@ -19,25 +19,14 @@
 
       <UCard>
         <div v-if="loading" class="text-center py-8">
-          <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
-          ></div>
+          <USpinner size="lg" />
         </div>
 
         <div v-else-if="responses.length === 0" class="text-center py-12">
-          <svg
+          <UIcon
+            name="i-heroicons-document-text"
             class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
+          />
           <h3 class="mt-2 text-sm font-medium text-gray-900">
             No responses yet
           </h3>
@@ -84,38 +73,28 @@
                 class="hover:bg-gray-50"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">
-                    {{ response.student_name }}
-                  </div>
+                  <span class="text-sm font-medium text-gray-900">{{
+                    response.student_name
+                  }}</span>
                 </td>
                 <td class="px-6 py-4">
-                  <div class="text-sm text-gray-900 max-w-md truncate">
-                    {{ response.question_text }}
-                  </div>
+                  <span class="text-sm text-gray-900 max-w-md truncate">{{
+                    response.question_text
+                  }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="text-xs px-2 py-1 rounded-full font-medium"
-                    :class="{
-                      'bg-blue-100 text-blue-700':
-                        response.category === 'behavioral',
-                      'bg-green-100 text-green-700':
-                        response.category === 'hard_skill',
-                      'bg-purple-100 text-purple-700':
-                        response.category === 'soft_skill',
-                      'bg-orange-100 text-orange-700':
-                        response.category === 'technical',
-                      'bg-pink-100 text-pink-700':
-                        response.category === 'personality',
-                    }"
+                  <UBadge
+                    :color="getCategoryColor(response.category)"
+                    variant="subtle"
+                    size="sm"
                   >
                     {{ formatTraits(response.trait) }}
-                  </span>
+                  </UBadge>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
-                    {{ response.response_value }}
-                  </div>
+                  <span class="text-sm text-gray-900">{{
+                    response.response_value
+                  }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ new Date(response.created_at).toLocaleDateString() }}
@@ -125,7 +104,7 @@
           </table>
         </div>
       </UCard>
-    </div>
+    </UContainer>
   </div>
 </template>
 
@@ -165,5 +144,21 @@ function formatTraits(traits: string | string[]): string {
     return traits.map(formatSingleTrait).join(", ");
   }
   return "None";
+}
+
+function getCategoryColor(
+  category: string
+): "primary" | "success" | "info" | "warning" | "error" {
+  const colorMap: Record<
+    string,
+    "primary" | "success" | "info" | "warning" | "error"
+  > = {
+    behavioral: "primary",
+    hard_skill: "success",
+    soft_skill: "info",
+    technical: "warning",
+    personality: "error",
+  };
+  return colorMap[category] || "primary";
 }
 </script>

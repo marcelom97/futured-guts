@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <UContainer class="py-12">
       <UButton
         to="/"
         variant="ghost"
@@ -32,19 +32,10 @@
         </div>
 
         <div v-else-if="students.length === 0" class="text-center py-12">
-          <svg
+          <UIcon
+            name="i-heroicons-users"
             class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-            />
-          </svg>
+          />
           <h3 class="mt-2 text-sm font-medium text-gray-900">No students</h3>
           <p class="mt-1 text-sm text-gray-500">
             Get started by adding a student.
@@ -94,33 +85,50 @@
                 class="hover:bg-gray-50"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div
-                      class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold"
-                    >
-                      {{ student.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ student.name }}
-                      </div>
-                    </div>
+                  <div class="flex items-center gap-3">
+                    <UAvatar
+                      :text="student.name.charAt(0).toUpperCase()"
+                      size="md"
+                    />
+                    <span class="text-sm font-medium text-gray-900">{{
+                      student.name
+                    }}</span>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ student.email }}</div>
+                  <span class="text-sm text-gray-900">{{ student.email }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <button
+                      v-if="student.group_count > 0"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                      @click="openGroupsModal(student)"
+                    >
                       {{ student.group_count }} {{ student.group_count === 1 ? 'group' : 'groups' }}
+                    </button>
+                    <span
+                      v-else
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                    >
+                      0 groups
                     </span>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <button
+                      v-if="student.questionnaire_count > 0"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer"
+                      @click="openQuestionnairesModal(student)"
+                    >
                       {{ student.questionnaire_count }} {{ student.questionnaire_count === 1 ? 'questionnaire' : 'questionnaires' }}
+                    </button>
+                    <span
+                      v-else
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                    >
+                      0 questionnaires
                     </span>
                   </div>
                 </td>
@@ -132,7 +140,7 @@
           </table>
         </div>
       </UCard>
-    </div>
+    </UContainer>
 
     <!-- Add Student Modal -->
     <UModal v-model:open="showAddModal" title="Add Student">
@@ -185,6 +193,188 @@
         </div>
       </template>
     </UModal>
+
+    <!-- Student Groups Modal -->
+    <UModal v-model:open="showGroupsModal" :title="`${selectedStudent?.name}'s Groups`">
+      <template #body>
+        <div v-if="loadingGroups" class="text-center py-8">
+          <div
+            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
+          />
+          <p class="mt-2 text-sm text-gray-600">Loading groups...</p>
+        </div>
+
+        <div v-else-if="studentGroups.length === 0" class="text-center py-8">
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No groups</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            This student is not a member of any groups yet.
+          </p>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div
+            v-for="group in studentGroups"
+            :key="group.id"
+            class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-sm font-medium text-gray-900">{{ group.name }}</h3>
+                <p class="text-xs text-gray-500 mt-1">
+                  Questionnaire: {{ group.questionnaire_title }}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                  {{ group.member_count }} {{ group.member_count === 1 ? 'member' : 'members' }} • 
+                  Created {{ new Date(group.created_at).toLocaleDateString() }}
+                </p>
+              </div>
+              <UButton
+                size="xs"
+                color="primary"
+                variant="outline"
+                @click="navigateToGroup(group)"
+              >
+                View Group
+              </UButton>
+            </div>
+            
+            <div v-if="group.members.length > 0" class="mt-3">
+              <p class="text-xs text-gray-500 mb-2">Members:</p>
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="member in group.members"
+                  :key="member.id"
+                  class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700"
+                >
+                  {{ member.name }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex items-center justify-end">
+          <UButton
+            color="neutral"
+            variant="outline"
+            @click="showGroupsModal = false"
+          >
+            Close
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Student Questionnaires Modal -->
+    <UModal v-model:open="showQuestionnairesModal" :title="`${selectedStudent?.name}'s Questionnaires`">
+      <template #body>
+        <div v-if="loadingQuestionnaires" class="text-center py-8">
+          <div
+            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
+          />
+          <p class="mt-2 text-sm text-gray-600">Loading questionnaires...</p>
+        </div>
+
+        <div v-else-if="studentQuestionnaires.length === 0" class="text-center py-8">
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No questionnaires</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            This student hasn't completed any questionnaires yet.
+          </p>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div
+            v-for="questionnaire in studentQuestionnaires"
+            :key="questionnaire.id"
+            class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-sm font-medium text-gray-900">{{ questionnaire.title }}</h3>
+                <p v-if="questionnaire.description" class="text-xs text-gray-500 mt-1">
+                  {{ questionnaire.description }}
+                </p>
+                <div class="flex items-center gap-4 mt-2">
+                  <span class="text-xs text-gray-500">
+                    {{ questionnaire.answered_questions }}/{{ questionnaire.total_questions }} questions answered
+                  </span>
+                  <div class="flex items-center">
+                    <div class="w-16 bg-gray-200 rounded-full h-1.5 mr-2">
+                      <div 
+                        class="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                        :style="{ width: questionnaire.completion_percentage + '%' }"
+                      />
+                    </div>
+                    <span class="text-xs text-gray-500">{{ questionnaire.completion_percentage }}%</span>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">
+                  Created {{ new Date(questionnaire.created_at).toLocaleDateString() }}
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <UButton
+                  size="xs"
+                  color="success"
+                  variant="outline"
+                  @click="navigateToQuestionnaire(questionnaire)"
+                >
+                  View Results
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="primary"
+                  variant="outline"
+                  @click="navigateToRespond(questionnaire)"
+                >
+                  Respond
+                </UButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex items-center justify-end">
+          <UButton
+            color="neutral"
+            variant="outline"
+            @click="showQuestionnairesModal = false"
+          >
+            Close
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -199,10 +389,45 @@ interface Student {
   questionnaire_count: number;
 }
 
+interface GroupMember {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface StudentGroup {
+  id: number;
+  name: string;
+  questionnaire_id: number;
+  questionnaire_title: string;
+  questionnaire_description: string;
+  member_count: number;
+  created_at: string;
+  members: GroupMember[];
+}
+
+interface StudentQuestionnaire {
+  id: number;
+  title: string;
+  description: string;
+  teacher_id: number;
+  created_at: string;
+  total_questions: number;
+  answered_questions: number;
+  completion_percentage: number;
+}
+
 const students = ref<Student[]>([]);
 const loading = ref(true);
 const adding = ref(false);
 const showAddModal = ref(false);
+const showGroupsModal = ref(false);
+const showQuestionnairesModal = ref(false);
+const loadingGroups = ref(false);
+const loadingQuestionnaires = ref(false);
+const selectedStudent = ref<Student | null>(null);
+const studentGroups = ref<StudentGroup[]>([]);
+const studentQuestionnaires = ref<StudentQuestionnaire[]>([]);
 const newStudent = ref({
   name: "",
   email: "",
@@ -253,5 +478,58 @@ async function addStudent() {
   } finally {
     adding.value = false;
   }
+}
+
+async function openGroupsModal(student: Student) {
+  selectedStudent.value = student;
+  showGroupsModal.value = true;
+  loadingGroups.value = true;
+  studentGroups.value = [];
+
+  try {
+    const response = await $fetch(`/api/students/${student.id}/groups`);
+    if (response.success) {
+      studentGroups.value = response.groups || [];
+    }
+  } catch (error) {
+    console.error("Failed to load student groups:", error);
+    alert("Failed to load groups. Please try again.");
+  } finally {
+    loadingGroups.value = false;
+  }
+}
+
+function navigateToGroup(group: StudentGroup) {
+  // Navigate to the questionnaire groups page with the specific group
+  navigateTo(`/questionnaires/${group.questionnaire_id}/groups`);
+}
+
+async function openQuestionnairesModal(student: Student) {
+  selectedStudent.value = student;
+  showQuestionnairesModal.value = true;
+  loadingQuestionnaires.value = true;
+  studentQuestionnaires.value = [];
+
+  try {
+    const response = await $fetch(`/api/students/${student.id}/questionnaires`);
+    if (response.success) {
+      studentQuestionnaires.value = response.questionnaires || [];
+    }
+  } catch (error) {
+    console.error("Failed to load student questionnaires:", error);
+    alert("Failed to load questionnaires. Please try again.");
+  } finally {
+    loadingQuestionnaires.value = false;
+  }
+}
+
+function navigateToQuestionnaire(questionnaire: StudentQuestionnaire) {
+  // Navigate to the questionnaire responses page
+  navigateTo(`/questionnaires/${questionnaire.id}/responses`);
+}
+
+function navigateToRespond(questionnaire: StudentQuestionnaire) {
+  // Navigate to the respond page for this questionnaire
+  navigateTo(`/respond/${questionnaire.id}`);
 }
 </script>
