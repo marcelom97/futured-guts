@@ -225,8 +225,6 @@ interface Questionnaire {
   created_at: string;
 }
 
-const questionnaires = ref<Questionnaire[]>([]);
-const loading = ref(true);
 const showDetailsModal = ref(false);
 const selectedQuestionnaire = ref<Questionnaire | null>(null);
 
@@ -238,18 +236,15 @@ function showQuestionnaireDetails(questionnaire: Questionnaire) {
   showDetailsModal.value = true;
 }
 
-onMounted(async () => {
-  try {
-    const response = await $fetch(
-      `/api/questionnaires?teacher_id=${teacherId}`
-    );
-    if (response.success) {
-      questionnaires.value = response.questionnaires || [];
-    }
-  } catch (error) {
-    console.error("Failed to fetch questionnaires:", error);
-  } finally {
-    loading.value = false;
+const { data: response, pending: loading } = await useFetch(
+  `/api/questionnaires?teacher_id=${teacherId}`,
+  {
+    default: () => ({ success: false, questionnaires: [] })
   }
+);
+
+// Compute questionnaires from the response
+const questionnaires = computed(() => {
+  return response.value?.success ? response.value.questionnaires || [] : [];
 });
 </script>
