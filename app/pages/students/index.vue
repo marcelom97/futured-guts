@@ -347,7 +347,7 @@
                   variant="outline"
                   @click="navigateToQuestionnaire(questionnaire)"
                 >
-                  View Results
+                  View All Responses
                 </UButton>
               </div>
             </div>
@@ -409,6 +409,8 @@ interface StudentQuestionnaire {
   completion_percentage: number;
 }
 
+const toast = useToast();
+
 const students = ref<Student[]>([]);
 const loading = ref(true);
 const adding = ref(false);
@@ -447,7 +449,11 @@ async function loadStudents() {
 
 async function addStudent() {
   if (!newStudent.value.name || !newStudent.value.email) {
-    alert("Please fill in all fields");
+    toast.add({
+      title: "Validation Error",
+      description: "Please fill in all fields",
+      color: "warning"
+    });
     return;
   }
 
@@ -466,7 +472,11 @@ async function addStudent() {
     newStudent.value = { name: "", email: "" };
   } catch (error) {
     console.error("Failed to add student:", error);
-    alert("Failed to add student. Please try again.");
+    toast.add({
+      title: "Error",
+      description: "Failed to add student. Please try again.",
+      color: "error"
+    });
   } finally {
     adding.value = false;
   }
@@ -485,7 +495,11 @@ async function openGroupsModal(student: Student) {
     }
   } catch (error) {
     console.error("Failed to load student groups:", error);
-    alert("Failed to load groups. Please try again.");
+    toast.add({
+      title: "Error",
+      description: "Failed to load groups. Please try again.",
+      color: "error"
+    });
   } finally {
     loadingGroups.value = false;
   }
@@ -509,7 +523,11 @@ async function openQuestionnairesModal(student: Student) {
     }
   } catch (error) {
     console.error("Failed to load student questionnaires:", error);
-    alert("Failed to load questionnaires. Please try again.");
+    toast.add({
+      title: "Error",
+      description: "Failed to load questionnaires. Please try again.",
+      color: "error"
+    });
   } finally {
     loadingQuestionnaires.value = false;
   }
@@ -518,10 +536,5 @@ async function openQuestionnairesModal(student: Student) {
 function navigateToQuestionnaire(questionnaire: StudentQuestionnaire) {
   // Navigate to the questionnaire responses page
   navigateTo(`/questionnaires/${questionnaire.id}/responses`);
-}
-
-function navigateToRespond(questionnaire: StudentQuestionnaire) {
-  // Navigate to the respond page for this questionnaire
-  navigateTo(`/respond/${questionnaire.id}`);
 }
 </script>
