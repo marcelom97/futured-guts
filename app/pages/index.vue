@@ -101,19 +101,19 @@
                 />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900">View Groups</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
           </div>
           <p class="text-gray-600 mb-6 text-sm flex-grow">
-            Visualize and manage generated student groups
+            View insights and analytics from your questionnaires
           </p>
           <UButton
-            @click="showGroupsModal = true"
             color="primary"
             variant="soft"
             block
             icon="i-heroicons-chart-bar"
+            disabled
           >
-            View All Groups
+            Coming Soon
           </UButton>
         </div>
       </div>
@@ -164,7 +164,7 @@
             v-for="q in questionnaires"
             :key="q.id"
             class="px-6 py-4 hover:bg-gray-50 cursor-pointer transition"
-            @click="navigateTo(`/questionnaires/${q.id}`)"
+            @click="showQuestionnaireDetails(q)"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1">
@@ -198,21 +198,43 @@
       </div>
     </div>
 
-    <!-- Groups Modal -->
-    <UModal v-model="showGroupsModal">
-      <UCard variant="outline">
+    <!-- Questionnaire Details Modal -->
+    <UModal v-model="showDetailsModal">
+      <UCard v-if="selectedQuestionnaire" variant="outline">
         <template #header>
-          <h3 class="text-lg font-semibold">All Questionnaires</h3>
+          <h3 class="text-lg font-semibold">{{ selectedQuestionnaire.title }}</h3>
         </template>
-        <div class="space-y-2">
-          <div
-            v-for="q in questionnaires"
-            :key="q.id"
-            class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-            @click="navigateTo(`/questionnaires/${q.id}/groups`)"
-          >
-            <p class="font-medium">{{ q.title }}</p>
-            <p class="text-sm text-gray-500">View groups</p>
+        <div class="space-y-4">
+          <div>
+            <h4 class="font-medium text-gray-900 mb-2">Description</h4>
+            <p class="text-gray-600">{{ selectedQuestionnaire.description }}</p>
+          </div>
+          <div>
+            <h4 class="font-medium text-gray-900 mb-2">Created</h4>
+            <p class="text-gray-600">{{ new Date(selectedQuestionnaire.created_at).toLocaleDateString() }}</p>
+          </div>
+          <div class="flex gap-2 pt-4">
+            <UButton
+              :to="`/questionnaires/${selectedQuestionnaire.id}`"
+              color="primary"
+              icon="i-heroicons-eye"
+            >
+              View Details
+            </UButton>
+            <UButton
+              :to="`/questionnaires/${selectedQuestionnaire.id}/responses`"
+              variant="outline"
+              icon="i-heroicons-document-text"
+            >
+              View Responses
+            </UButton>
+            <UButton
+              :to="`/questionnaires/${selectedQuestionnaire.id}/groups`"
+              variant="soft"
+              icon="i-heroicons-user-group"
+            >
+              Generate Groups
+            </UButton>
           </div>
         </div>
       </UCard>
@@ -221,12 +243,25 @@
 </template>
 
 <script setup lang="ts">
-const questionnaires = ref<any[]>([]);
+interface Questionnaire {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+}
+
+const questionnaires = ref<Questionnaire[]>([]);
 const loading = ref(true);
-const showGroupsModal = ref(false);
+const showDetailsModal = ref(false);
+const selectedQuestionnaire = ref<Questionnaire | null>(null);
 
 // Mock teacher ID - in production, use authentication
 const teacherId = 1;
+
+function showQuestionnaireDetails(questionnaire: Questionnaire) {
+  selectedQuestionnaire.value = questionnaire;
+  showDetailsModal.value = true;
+}
 
 onMounted(async () => {
   try {
