@@ -177,31 +177,51 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
 
+interface Question {
+  id: number;
+  question_text: string;
+  question_type: string;
+  trait: string | string[];
+  category: string;
+  weight: number;
+  options?: string[];
+}
+
+interface Questionnaire {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  questions: Question[];
+}
+
+interface QuestionnaireResponse {
+  success: boolean;
+  questionnaire: Questionnaire | null;
+}
+
 const route = useRoute();
 const toast = useToast();
-const questionnaire = ref<any>(null);
-const loading = ref(true);
+
+// Use useFetch for initial data loading with better SSR support
+const { data: questionnaireResponse, pending: loading } = await useFetch<QuestionnaireResponse>(
+  `/api/questionnaires/${route.params.id}`,
+  {
+    default: (): QuestionnaireResponse => ({ success: false, questionnaire: null })
+  }
+);
+
+// Compute questionnaire from the response
+const questionnaire = computed(() => {
+  return questionnaireResponse.value.success ? questionnaireResponse.value.questionnaire : null;
+});
+
 const showQRCodeModal = ref(false);
 const qrCanvas = ref<HTMLCanvasElement | null>(null);
 
 const studentLink = computed(
   () => `${window.location.origin}/respond/${route.params.id}`
 );
-
-onMounted(async () => {
-  try {
-    const response: any = await $fetch(
-      `/api/questionnaires/${route.params.id}`
-    );
-    if (response.success) {
-      questionnaire.value = response.questionnaire;
-    }
-  } catch (error) {
-    console.error("Failed to fetch questionnaire:", error);
-  } finally {
-    loading.value = false;
-  }
-});
 
 // Generate QR code after modal is fully rendered
 async function generateQRCode() {

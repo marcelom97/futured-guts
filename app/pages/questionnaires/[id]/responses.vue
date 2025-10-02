@@ -91,7 +91,7 @@
         <div v-if="loading" class="text-center py-8">
           <div
             class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
-          ></div>
+          />
         </div>
 
         <div v-else-if="responses.length === 0" class="text-center py-12">
@@ -221,8 +221,19 @@ interface Filters {
 }
 
 const route = useRoute();
-const responses = ref<Response[]>([]);
-const loading = ref(true);
+
+// Use useFetch for initial data loading with better SSR support
+const { data: responsesData, pending: loading } = await useFetch<{
+  success: boolean;
+  responses: Response[];
+}>(`/api/responses/questionnaire/${route.params.id}`, {
+  default: () => ({ success: false, responses: [] })
+});
+
+// Compute responses from the fetched data
+const responses = computed(() => {
+  return responsesData.value?.success ? responsesData.value.responses || [] : [];
+});
 
 // Filter reactive variables
 const filters = ref<Filters>({
@@ -283,21 +294,6 @@ function clearFilters() {
     trait: ''
   };
 }
-
-onMounted(async () => {
-  try {
-    const response = await $fetch(
-      `/api/responses/questionnaire/${route.params.id}`
-    );
-    if (response.success) {
-      responses.value = response.responses || [];
-    }
-  } catch (error) {
-    console.error("Failed to load responses:", error);
-  } finally {
-    loading.value = false;
-  }
-});
 
 // Formatting function for consistent data display
 function formatTraits(traits: string | string[]): string {
