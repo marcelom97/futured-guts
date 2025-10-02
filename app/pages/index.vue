@@ -19,7 +19,7 @@
               <UIcon name="i-heroicons-document-text" class="w-6 h-6 text-blue-600" />
             </div>
             <h3 class="text-lg font-semibold text-gray-900">
-              Create Questionnaire
+              Questionnaires
             </h3>
           </div>
           <p class="text-gray-600 mb-6 text-sm flex-grow">
@@ -43,7 +43,7 @@
             <div class="p-3 bg-green-50 rounded-lg">
               <UIcon name="i-heroicons-users" class="w-6 h-6 text-green-600" />
             </div>
-            <h3 class="text-lg font-semibold text-gray-900">Manage Students</h3>
+            <h3 class="text-lg font-semibold text-gray-900"> Students</h3>
           </div>
           <p class="text-gray-600 mb-6 text-sm flex-grow">
             Add and manage your student roster
