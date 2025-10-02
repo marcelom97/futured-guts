@@ -5,7 +5,7 @@
       <div class="mb-8">
         <UButton
           to="/"
-          color="gray"
+          color="neutral"
           variant="ghost"
           icon="i-heroicons-arrow-left"
           class="mb-4"
@@ -183,14 +183,14 @@
                         />
                         <UButton
                           @click="question.options.splice(optIndex, 1)"
-                          color="red"
+                          color="error"
                           variant="ghost"
                           icon="i-heroicons-trash"
                         />
                       </div>
                       <UButton
                         @click="question.options.push('')"
-                        color="gray"
+                        color="neutral"
                         variant="outline"
                         size="sm"
                         icon="i-heroicons-plus"
@@ -207,7 +207,7 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton to="/" color="gray" variant="outline">Cancel</UButton>
+            <UButton to="/" color="neutral" variant="outline">Cancel</UButton>
             <UButton
               @click="saveQuestionnaire"
               :loading="saving"
@@ -259,7 +259,7 @@
           <div class="flex justify-end gap-3">
             <UButton
               @click="showAIModal = false"
-              color="gray"
+              color="neutral"
               variant="outline"
             >
               Cancel
@@ -319,15 +319,18 @@ async function generateQuestions() {
       .map((s) => s.trim())
       .filter((s) => s);
 
-    const response = await $fetch("/api/ai/generate-questions", {
-      method: "POST",
-      body: {
-        focus_areas: focusAreas,
-        num_questions: aiNumQuestions.value,
-      },
-    });
+    const response = await $fetch<{ success: boolean; questions: any[] }>(
+      "/api/ai/generate-questions",
+      {
+        method: "POST",
+        body: {
+          focus_areas: focusAreas,
+          num_questions: aiNumQuestions.value,
+        },
+      }
+    );
 
-    if (response.success) {
+    if (response.success && response.questions) {
       questions.value = response.questions;
       showAIModal.value = false;
     }
