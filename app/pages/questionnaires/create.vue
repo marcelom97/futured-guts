@@ -386,6 +386,15 @@
 <script setup lang="ts">
 import { z } from "zod";
 
+interface GeneratedQuestion {
+  question_text: string;
+  question_type: string;
+  category: string;
+  trait: string[];
+  weight: number;
+  options?: string[];
+}
+
 const toast = useToast();
 
 // Zod schemas
@@ -460,7 +469,7 @@ const questionnaire = ref({
   teacher_id: 1, // Mock - use auth in production
 });
 
-const questions = ref<any[]>([]);
+const questions = ref<GeneratedQuestion[]>([]);
 const saving = ref(false);
 const generating = ref(false);
 const showAIModal = ref(false);
@@ -616,7 +625,7 @@ async function generateQuestions() {
 
   generating.value = true;
   try {
-    const response = await $fetch<{ success: boolean; questions: any[] }>(
+    const { data: response } = await useLazyFetch<{ success: boolean; questions: GeneratedQuestion[] }>(
       "/api/ai/generate-questions",
       {
         method: "POST",
@@ -627,12 +636,12 @@ async function generateQuestions() {
       }
     );
 
-    if (response.success && response.questions) {
-      questions.value = response.questions;
+    if (response.value?.success && response.value.questions) {
+      questions.value = response.value.questions;
       showAIModal.value = false;
       toast.add({
         title: "Success",
-        description: `Generated ${response.questions.length} questions successfully`,
+        description: `Generated ${response.value.questions.length} questions successfully`,
         color: "success",
         icon: "i-heroicons-sparkles",
       });
@@ -693,7 +702,10 @@ async function saveQuestionnaire() {
 
   saving.value = true;
   try {
-    const response = await $fetch("/api/questionnaires", {
+    const { data: response } = await useLazyFetch<{
+      success: boolean;
+      questionnaire_id?: number;
+    }>("/api/questionnaires", {
       method: "POST",
       body: {
         ...questionnaire.value,
@@ -701,14 +713,14 @@ async function saveQuestionnaire() {
       },
     });
 
-    if (response.success) {
+    if (response.value?.success) {
       toast.add({
         title: "Success",
         description: "Questionnaire created successfully",
         color: "success",
         icon: "i-heroicons-check-circle",
       });
-      await navigateTo(`/questionnaires/${response.questionnaire_id}`);
+      await navigateTo(`/questionnaires/${response.value?.questionnaire_id}`);
     } else {
       toast.add({
         title: "Error",

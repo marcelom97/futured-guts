@@ -268,8 +268,20 @@
 <script setup lang="ts">
 const route = useRoute();
 const toast = useToast();
-const questionnaire = ref<any>(null);
-const loading = ref(true);
+
+// Use useFetch for initial questionnaire loading
+const { data: questionnaireResponse, pending: loading } = await useFetch<{
+  success: boolean;
+  questionnaire: any;
+}>(`/api/questionnaires/${route.params.id}`, {
+  default: () => ({ success: false, questionnaire: null })
+});
+
+// Compute questionnaire from the response
+const questionnaire = computed(() => {
+  return questionnaireResponse.value?.success ? questionnaireResponse.value.questionnaire : null;
+});
+
 const submitting = ref(false);
 const submitted = ref(false);
 const alreadyResponded = ref(false);
@@ -404,20 +416,7 @@ const isFormValid = computed(() => {
   });
 });
 
-onMounted(async () => {
-  try {
-    const response: any = await $fetch(
-      `/api/questionnaires/${route.params.id}`
-    );
-    if (response.success) {
-      questionnaire.value = response.questionnaire;
-    }
-  } catch (error) {
-    console.error("Failed to fetch questionnaire:", error);
-  } finally {
-    loading.value = false;
-  }
-});
+// Questionnaire data is now loaded via useFetch above
 
 // Check if student has already responded when they enter their email
 async function checkIfAlreadyResponded() {
@@ -432,15 +431,15 @@ async function checkIfAlreadyResponded() {
   }
 
   try {
-    const result: any = await $fetch("/api/responses/check-existing", {
+    const { data: result } = await useLazyFetch<{ hasResponded: boolean }>("/api/responses/check-existing", {
       method: "POST",
       body: {
         email: studentInfo.value.email,
-        questionnaire_id: questionnaire.value.id,
+        questionnaire_id: questionnaire.value?.id,
       },
     });
 
-    if (result.hasResponded) {
+    if (result.value?.hasResponded) {
       alreadyResponded.value = true;
       toast.add({
         title: "Already Responded",
@@ -545,12 +544,12 @@ async function submitResponses() {
   submitting.value = true;
   try {
     // First, create/get student
-    const studentResponse = await $fetch("/api/students", {
+    const { data: studentResponse } = await useLazyFetch<{ student_id: number }>("/api/students", {
       method: "POST",
       body: {
         name: studentInfo.value.name,
         email: studentInfo.value.email,
-        teacher_id: questionnaire.value.teacher_id,
+        teacher_id: questionnaire.value?.teacher_id,
       },
     });
 
@@ -562,10 +561,10 @@ async function submitResponses() {
       })
     );
 
-    await $fetch("/api/responses", {
+    await useLazyFetch("/api/responses", {
       method: "POST",
       body: {
-        student_id: studentResponse.student_id,
+        student_id: studentResponse.value?.student_id,
         responses: responseData,
       },
     });

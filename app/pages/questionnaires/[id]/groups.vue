@@ -189,13 +189,37 @@ import type {
 
 const route = useRoute();
 const toast = useToast();
-const groups = ref<Group[]>([]);
+
+// Use useFetch for initial data loading
+const { data: groupsResponse, refresh: _refreshGroups } = await useFetch<GetGroupsResponse>(
+  `/api/groups/questionnaire/${route.params.id}`,
+  {
+    default: (): GetGroupsResponse => ({ 
+      success: false, 
+      groups: [], 
+      balance_score: null, 
+      diversity_explanation: "" 
+    })
+  }
+);
+
+// Compute derived state from the response
+const groups = computed(() => {
+  return groupsResponse.value.success ? groupsResponse.value.groups : [];
+});
+
+const balanceScore = computed(() => {
+  return groupsResponse.value.success ? groupsResponse.value.balance_score : null;
+});
+
+const diversityExplanation = computed(() => {
+  return groupsResponse.value.success ? groupsResponse.value.diversity_explanation || "" : "";
+});
+
 const generating = ref(false);
 const showControls = ref(false);
 const numGroups = ref(4);
 const groupingStrategy = ref("balanced");
-const balanceScore = ref<number | null>(null);
-const diversityExplanation = ref<string>("");
 
 const strategies = [
   { label: "Balanced", value: "balanced" },
@@ -225,32 +249,17 @@ function getCurrentStrategyInfo() {
   return strategyInfo[groupingStrategy.value as keyof typeof strategyInfo];
 }
 
-onMounted(async () => {
-  await loadGroups();
+// Set show controls based on groups length
+onMounted(() => {
   if (groups.value.length === 0) {
     showControls.value = true;
   }
 });
 
-async function loadGroups() {
-  try {
-    const response = await $fetch<GetGroupsResponse>(
-      `/api/groups/questionnaire/${route.params.id}`
-    );
-    if (response.success) {
-      groups.value = response.groups;
-      balanceScore.value = response.balance_score;
-      diversityExplanation.value = response.diversity_explanation || "";
-    }
-  } catch (error) {
-    console.error("Failed to load groups:", error);
-  }
-}
-
 async function generateGroups() {
   generating.value = true;
   try {
-    const response = await $fetch<GenerateGroupsResponse>(
+    const { data: response } = await useLazyFetch<GenerateGroupsResponse>(
       "/api/ai/generate-groups",
       {
         method: "POST",
@@ -262,24 +271,22 @@ async function generateGroups() {
       }
     );
 
-    if (response.success) {
-      balanceScore.value = response.balance_score;
-      diversityExplanation.value = response.diversity_explanation;
-      await loadGroups();
+    if (response.value?.success) {
+      await _refreshGroups();
       showControls.value = false;
 
       // Show notification if groups were adjusted
-      if (response.adjusted_groups) {
+      if (response.value.adjusted_groups) {
         toast.add({
           title: "Groups Adjusted",
-          description: `Created ${response.created_groups} groups instead of ${response.requested_groups} due to having only ${response.total_students} students. Each group needs at least 2 students.`,
+          description: `Created ${response.value.created_groups} groups instead of ${response.value.requested_groups} due to having only ${response.value.total_students} students. Each group needs at least 2 students.`,
           color: "warning",
           icon: "i-heroicons-information-circle",
         });
       } else {
         toast.add({
           title: "Success",
-          description: `Successfully generated ${response.created_groups} groups!`,
+          description: `Successfully generated ${response.value.created_groups} groups!`,
           color: "success",
           icon: "i-heroicons-check-circle",
         });
