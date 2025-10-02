@@ -349,14 +349,6 @@
                 >
                   View Results
                 </UButton>
-                <UButton
-                  size="xs"
-                  color="primary"
-                  variant="outline"
-                  @click="navigateToRespond(questionnaire)"
-                >
-                  Respond
-                </UButton>
               </div>
             </div>
           </div>
