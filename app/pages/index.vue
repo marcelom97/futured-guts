@@ -12,7 +12,7 @@
       <!-- Quick Actions -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div
-          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col"
         >
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-blue-50 rounded-lg">
@@ -34,7 +34,7 @@
               Create Questionnaire
             </h3>
           </div>
-          <p class="text-gray-600 mb-6 text-sm">
+          <p class="text-gray-600 mb-6 text-sm flex-grow">
             Design custom questionnaires or use AI to generate questions
           </p>
           <UButton
@@ -48,7 +48,7 @@
         </div>
 
         <div
-          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col"
         >
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-green-50 rounded-lg">
@@ -68,7 +68,7 @@
             </div>
             <h3 class="text-lg font-semibold text-gray-900">Manage Students</h3>
           </div>
-          <p class="text-gray-600 mb-6 text-sm">
+          <p class="text-gray-600 mb-6 text-sm flex-grow">
             Add and manage your student roster
           </p>
           <UButton
@@ -83,7 +83,7 @@
         </div>
 
         <div
-          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col"
         >
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-purple-50 rounded-lg">
@@ -103,7 +103,7 @@
             </div>
             <h3 class="text-lg font-semibold text-gray-900">View Groups</h3>
           </div>
-          <p class="text-gray-600 mb-6 text-sm">
+          <p class="text-gray-600 mb-6 text-sm flex-grow">
             Visualize and manage generated student groups
           </p>
           <UButton
