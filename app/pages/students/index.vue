@@ -16,9 +16,9 @@
           <p class="mt-2 text-gray-600">Manage your student roster</p>
         </div>
         <UButton
-          @click="showAddModal = true"
           color="primary"
           icon="i-heroicons-plus"
+          @click="showAddModal = true"
         >
           Add Student
         </UButton>
@@ -28,7 +28,7 @@
         <div v-if="loading" class="text-center py-8">
           <div
             class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
-          ></div>
+          />
         </div>
 
         <div v-else-if="students.length === 0" class="text-center py-12">
@@ -50,7 +50,7 @@
             Get started by adding a student.
           </p>
           <div class="mt-6">
-            <UButton @click="showAddModal = true" icon="i-heroicons-plus">
+            <UButton icon="i-heroicons-plus" @click="showAddModal = true">
               Add Student
             </UButton>
           </div>
@@ -69,6 +69,16 @@
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Email
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Groups
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Questionnaires
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -99,6 +109,20 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">{{ student.email }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {{ student.group_count }} {{ student.group_count === 1 ? 'group' : 'groups' }}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {{ student.questionnaire_count }} {{ student.questionnaire_count === 1 ? 'questionnaire' : 'questionnaires' }}
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ new Date(student.created_at).toLocaleDateString() }}
@@ -142,19 +166,19 @@
       <template #footer>
         <div class="flex items-center justify-end gap-3">
           <UButton
-            @click="showAddModal = false"
             color="neutral"
             variant="outline"
             :disabled="adding"
+            @click="showAddModal = false"
           >
             Cancel
           </UButton>
           <UButton
-            @click="addStudent"
-            :loading="adding"
-            :disabled="adding"
             color="primary"
             icon="i-heroicons-check"
+            :loading="adding"
+            :disabled="adding"
+            @click="addStudent"
           >
             {{ adding ? "Adding..." : "Add Student" }}
           </UButton>
@@ -165,7 +189,17 @@
 </template>
 
 <script setup lang="ts">
-const students = ref<any[]>([]);
+interface Student {
+  id: number;
+  name: string;
+  email: string;
+  teacher_id: number;
+  created_at: string;
+  group_count: number;
+  questionnaire_count: number;
+}
+
+const students = ref<Student[]>([]);
 const loading = ref(true);
 const adding = ref(false);
 const showAddModal = ref(false);

@@ -9,12 +9,65 @@ export default defineEventHandler((event) => {
   try {
     let students;
     if (teacher_id) {
-      const stmt = db.prepare(
-        "SELECT * FROM students WHERE teacher_id = ? ORDER BY name"
-      );
-      students = stmt.all(teacher_id);
+      // Get students with group count and questionnaire count
+      const stmt = db.prepare(`
+        SELECT 
+          s.*,
+          COALESCE(gm_count.group_count, 0) as group_count,
+          COALESCE(q_count.questionnaire_count, 0) as questionnaire_count
+        FROM students s
+        LEFT JOIN (
+          SELECT 
+            s.id as student_id,
+            COUNT(DISTINCT gm.group_id) as group_count
+          FROM students s
+          LEFT JOIN group_members gm ON s.id = gm.student_id
+          WHERE s.teacher_id = ?
+          GROUP BY s.id
+        ) gm_count ON s.id = gm_count.student_id
+        LEFT JOIN (
+          SELECT 
+            s.id as student_id,
+            COUNT(DISTINCT q.id) as questionnaire_count
+          FROM students s
+          LEFT JOIN responses r ON s.id = r.student_id
+          LEFT JOIN questions qu ON r.question_id = qu.id
+          LEFT JOIN questionnaires q ON qu.questionnaire_id = q.id
+          WHERE s.teacher_id = ?
+          GROUP BY s.id
+        ) q_count ON s.id = q_count.student_id
+        WHERE s.teacher_id = ?
+        ORDER BY s.name
+      `);
+      students = stmt.all(teacher_id, teacher_id, teacher_id);
     } else {
-      const stmt = db.prepare("SELECT * FROM students ORDER BY name");
+      // Get all students with group count and questionnaire count
+      const stmt = db.prepare(`
+        SELECT 
+          s.*,
+          COALESCE(gm_count.group_count, 0) as group_count,
+          COALESCE(q_count.questionnaire_count, 0) as questionnaire_count
+        FROM students s
+        LEFT JOIN (
+          SELECT 
+            s.id as student_id,
+            COUNT(DISTINCT gm.group_id) as group_count
+          FROM students s
+          LEFT JOIN group_members gm ON s.id = gm.student_id
+          GROUP BY s.id
+        ) gm_count ON s.id = gm_count.student_id
+        LEFT JOIN (
+          SELECT 
+            s.id as student_id,
+            COUNT(DISTINCT q.id) as questionnaire_count
+          FROM students s
+          LEFT JOIN responses r ON s.id = r.student_id
+          LEFT JOIN questions qu ON r.question_id = qu.id
+          LEFT JOIN questionnaires q ON qu.questionnaire_id = q.id
+          GROUP BY s.id
+        ) q_count ON s.id = q_count.student_id
+        ORDER BY s.name
+      `);
       students = stmt.all();
     }
 
