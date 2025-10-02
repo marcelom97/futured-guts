@@ -53,7 +53,72 @@
           >
             Copy Student Link
           </UButton>
+          <UButton
+            @click="showQRCodeModal = true"
+            color="neutral"
+            variant="outline"
+            icon="i-heroicons-qr-code"
+          >
+            Show QR Code
+          </UButton>
         </div>
+
+        <!-- QR Code Modal -->
+        <UModal
+          v-model:open="showQRCodeModal"
+          title="Share with Students"
+          @after:enter="generateQRCode"
+        >
+          <template #body>
+            <div class="space-y-6">
+              <!-- QR Code Display -->
+              <div class="flex flex-col items-center">
+                <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                  <canvas ref="qrCanvas" class="mx-auto"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-gray-600 text-center max-w-md">
+                  Students can scan this QR code to access the questionnaire
+                </p>
+              </div>
+
+              <!-- Student Link -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Direct Link
+                </label>
+                <div class="flex gap-2">
+                  <UInput :model-value="studentLink" readonly class="flex-1" />
+                  <UButton
+                    @click="copyStudentLink"
+                    variant="outline"
+                    icon="i-heroicons-clipboard-document"
+                  >
+                    Copy
+                  </UButton>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template #footer>
+            <div class="flex items-center justify-end gap-3">
+              <UButton
+                @click="showQRCodeModal = false"
+                color="neutral"
+                variant="outline"
+              >
+                Close
+              </UButton>
+              <UButton
+                @click="downloadQRCode"
+                color="primary"
+                icon="i-heroicons-arrow-down-tray"
+              >
+                Download QR Code
+              </UButton>
+            </div>
+          </template>
+        </UModal>
 
         <!-- Questions List -->
         <UCard>
@@ -110,10 +175,18 @@
 </template>
 
 <script setup lang="ts">
+import QRCode from "qrcode";
+
 const route = useRoute();
 const toast = useToast();
 const questionnaire = ref<any>(null);
 const loading = ref(true);
+const showQRCodeModal = ref(false);
+const qrCanvas = ref<HTMLCanvasElement | null>(null);
+
+const studentLink = computed(
+  () => `${window.location.origin}/respond/${route.params.id}`
+);
 
 onMounted(async () => {
   try {
@@ -130,15 +203,79 @@ onMounted(async () => {
   }
 });
 
+// Generate QR code after modal is fully rendered
+async function generateQRCode() {
+  await nextTick();
+  if (qrCanvas.value) {
+    try {
+      await QRCode.toCanvas(qrCanvas.value, studentLink.value, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to generate QR code:", error);
+      toast.add({
+        title: "Error",
+        description: "Failed to generate QR code",
+        color: "error",
+        icon: "i-heroicons-x-circle",
+      });
+    }
+  } else {
+    console.error("Canvas element not found");
+  }
+}
+
 function copyStudentLink() {
-  const url = `${window.location.origin}/respond/${route.params.id}`;
-  navigator.clipboard.writeText(url);
+  navigator.clipboard.writeText(studentLink.value);
   toast.add({
     title: "Link Copied",
     description: "Student link has been copied to clipboard!",
     color: "success",
     icon: "i-heroicons-check-circle",
   });
+}
+
+async function downloadQRCode() {
+  if (!qrCanvas.value) return;
+
+  try {
+    // Convert canvas to blob
+    const blob = await new Promise<Blob>((resolve) => {
+      qrCanvas.value!.toBlob((blob) => {
+        resolve(blob!);
+      });
+    });
+
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `questionnaire-${route.params.id}-qr-code.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.add({
+      title: "QR Code Downloaded",
+      description: "QR code has been saved to your device",
+      color: "success",
+      icon: "i-heroicons-check-circle",
+    });
+  } catch (error) {
+    console.error("Failed to download QR code:", error);
+    toast.add({
+      title: "Download Failed",
+      description: "Failed to download QR code",
+      color: "error",
+      icon: "i-heroicons-x-circle",
+    });
+  }
 }
 
 // Formatting functions for consistent data display
