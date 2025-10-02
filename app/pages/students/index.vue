@@ -501,8 +501,22 @@ interface StudentQuestionnaire {
 
 const toast = useToast();
 
-const students = ref<Student[]>([]);
-const loading = ref(true);
+// Mock teacher ID
+const teacherId = 1;
+
+// Use useFetch for initial data loading with better SSR support
+const { data: studentsResponse, pending: loading, refresh: _refreshStudents } = await useFetch<{
+  success: boolean;
+  students: Student[];
+}>(`/api/students?teacher_id=${teacherId}`, {
+  default: () => ({ success: false, students: [] })
+});
+
+// Compute students from the response
+const students = computed(() => {
+  return studentsResponse.value?.success ? studentsResponse.value.students || [] : [];
+});
+
 const adding = ref(false);
 const showAddModal = ref(false);
 const showGroupsModal = ref(false);
@@ -516,26 +530,6 @@ const newStudent = ref({
   name: "",
   email: "",
 });
-
-// Mock teacher ID
-const teacherId = 1;
-
-onMounted(async () => {
-  await loadStudents();
-});
-
-async function loadStudents() {
-  try {
-    const response = await $fetch(`/api/students?teacher_id=${teacherId}`);
-    if (response.success) {
-      students.value = response.students || [];
-    }
-  } catch (error) {
-    console.error("Failed to load students:", error);
-  } finally {
-    loading.value = false;
-  }
-}
 
 async function addStudent() {
   if (!newStudent.value.name || !newStudent.value.email) {
@@ -557,7 +551,7 @@ async function addStudent() {
       },
     });
 
-    await loadStudents();
+    await _refreshStudents();
     showAddModal.value = false;
     newStudent.value = { name: "", email: "" };
 
