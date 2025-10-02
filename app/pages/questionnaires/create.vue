@@ -34,7 +34,15 @@
               v-model="questionnaire.title"
               placeholder="e.g., Fall 2024 Project Team Formation"
               class="w-full"
+              :error="!!questionnaireErrors.title"
+              @blur="validateQuestionnaire"
             />
+            <p
+              v-if="questionnaireErrors.title"
+              class="mt-1 text-sm text-red-600"
+            >
+              {{ questionnaireErrors.title }}
+            </p>
           </div>
 
           <!-- Description -->
@@ -47,7 +55,15 @@
               placeholder="Describe the purpose of this questionnaire..."
               class="w-full"
               :rows="3"
+              :error="!!questionnaireErrors.description"
+              @blur="validateQuestionnaire"
             />
+            <p
+              v-if="questionnaireErrors.description"
+              class="mt-1 text-sm text-red-600"
+            >
+              {{ questionnaireErrors.description }}
+            </p>
           </div>
 
           <!-- AI Generation Section -->
@@ -115,11 +131,21 @@
                 </button>
 
                 <div class="space-y-4">
-                  <UInput
-                    v-model="question.question_text"
-                    placeholder="Enter question text..."
-                    class="w-full"
-                  />
+                  <div>
+                    <UInput
+                      v-model="question.question_text"
+                      placeholder="Enter question text..."
+                      class="w-full"
+                      :error="!!questionErrors[index]?.question_text"
+                      @blur="validateQuestion(index)"
+                    />
+                    <p
+                      v-if="questionErrors[index]?.question_text"
+                      class="mt-1 text-sm text-red-600"
+                    >
+                      {{ questionErrors[index].question_text }}
+                    </p>
+                  </div>
 
                   <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -132,7 +158,15 @@
                         value-key="value"
                         :search-input="false"
                         class="w-full"
+                        :error="!!questionErrors[index]?.question_type"
+                        @change="validateQuestion(index)"
                       />
+                      <p
+                        v-if="questionErrors[index]?.question_type"
+                        class="mt-1 text-sm text-red-600"
+                      >
+                        {{ questionErrors[index].question_type }}
+                      </p>
                     </div>
 
                     <div>
@@ -145,7 +179,15 @@
                         value-key="value"
                         :search-input="false"
                         class="w-full"
+                        :error="!!questionErrors[index]?.category"
+                        @change="validateQuestion(index)"
                       />
+                      <p
+                        v-if="questionErrors[index]?.category"
+                        class="mt-1 text-sm text-red-600"
+                      >
+                        {{ questionErrors[index].category }}
+                      </p>
                     </div>
                   </div>
 
@@ -158,7 +200,15 @@
                         v-model="question.trait"
                         placeholder="e.g., teamwork, math"
                         class="w-full"
+                        :error="!!questionErrors[index]?.trait"
+                        @blur="validateQuestion(index)"
                       />
+                      <p
+                        v-if="questionErrors[index]?.trait"
+                        class="mt-1 text-sm text-red-600"
+                      >
+                        {{ questionErrors[index].trait }}
+                      </p>
                     </div>
 
                     <div>
@@ -172,7 +222,15 @@
                         min="0"
                         max="5"
                         class="w-full"
+                        :error="!!questionErrors[index]?.weight"
+                        @blur="validateQuestion(index)"
                       />
+                      <p
+                        v-if="questionErrors[index]?.weight"
+                        class="mt-1 text-sm text-red-600"
+                      >
+                        {{ questionErrors[index].weight }}
+                      </p>
                     </div>
                   </div>
 
@@ -191,6 +249,8 @@
                           v-model="question.options[optIndex]"
                           placeholder="Option text"
                           class="flex-1"
+                          :error="!!questionErrors[index]?.options?.[optIndex]"
+                          @blur="validateQuestion(index)"
                         />
                         <UButton
                           @click="question.options.splice(optIndex, 1)"
@@ -208,6 +268,12 @@
                       >
                         Add Option
                       </UButton>
+                      <p
+                        v-if="questionErrors[index]?.options"
+                        class="mt-1 text-sm text-red-600"
+                      >
+                        {{ questionErrors[index].options }}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -255,7 +321,15 @@
               v-model="aiFocusAreas"
               placeholder="e.g., teamwork, leadership, communication, math, writing"
               class="w-full"
+              :error="!!aiModalErrors.focus_areas"
+              @blur="validateAIModal"
             />
+            <p
+              v-if="aiModalErrors.focus_areas"
+              class="mt-1 text-sm text-red-600"
+            >
+              {{ aiModalErrors.focus_areas }}
+            </p>
           </div>
 
           <div>
@@ -268,7 +342,15 @@
               min="3"
               max="20"
               class="w-full"
+              :error="!!aiModalErrors.num_questions"
+              @blur="validateAIModal"
             />
+            <p
+              v-if="aiModalErrors.num_questions"
+              class="mt-1 text-sm text-red-600"
+            >
+              {{ aiModalErrors.num_questions }}
+            </p>
           </div>
         </div>
       </template>
@@ -299,6 +381,74 @@
 </template>
 
 <script setup lang="ts">
+import { z } from "zod";
+
+// Zod schemas
+const questionnaireSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters"),
+  description: z
+    .string()
+    .max(1000, "Description must be less than 1000 characters")
+    .optional(),
+  teacher_id: z.number().positive(),
+});
+
+const questionSchema = z
+  .object({
+    question_text: z
+      .string()
+      .min(1, "Question text is required")
+      .max(500, "Question text must be less than 500 characters"),
+    question_type: z.enum(
+      ["scale", "multiple_choice", "text", "yes_no", "ranking"],
+      {
+        message: "Please select a valid question type",
+      }
+    ),
+    category: z.enum(
+      ["behavioral", "hard_skill", "soft_skill", "technical", "personality"],
+      {
+        message: "Please select a valid category",
+      }
+    ),
+    trait: z
+      .string()
+      .min(1, "Trait is required")
+      .max(100, "Trait must be less than 100 characters"),
+    weight: z
+      .number()
+      .min(0, "Weight must be at least 0")
+      .max(5, "Weight must be at most 5"),
+    options: z.array(z.string().min(1, "Option cannot be empty")).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.question_type === "multiple_choice") {
+        return data.options && data.options.length >= 2;
+      }
+      return true;
+    },
+    {
+      message: "Multiple choice questions must have at least 2 options",
+      path: ["options"],
+    }
+  );
+
+const aiModalSchema = z.object({
+  focus_areas: z
+    .string()
+    .min(1, "Focus areas are required")
+    .max(500, "Focus areas must be less than 500 characters"),
+  num_questions: z
+    .number()
+    .min(3, "Must generate at least 3 questions")
+    .max(20, "Cannot generate more than 20 questions"),
+});
+
+// Form data
 const questionnaire = ref({
   title: "",
   description: "",
@@ -311,6 +461,84 @@ const generating = ref(false);
 const showAIModal = ref(false);
 const aiFocusAreas = ref("teamwork, leadership, communication");
 const aiNumQuestions = ref(10);
+
+// Error states
+const questionnaireErrors = ref<Record<string, string>>({});
+const questionErrors = ref<Record<number, Record<string, string>>>({});
+const aiModalErrors = ref<Record<string, string>>({});
+
+// Validation functions
+function validateQuestionnaire() {
+  try {
+    questionnaireSchema.parse(questionnaire.value);
+    questionnaireErrors.value = {};
+    return true;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      questionnaireErrors.value = {};
+      error.issues.forEach((err) => {
+        if (err.path[0]) {
+          questionnaireErrors.value[err.path[0] as string] = err.message;
+        }
+      });
+    }
+    return false;
+  }
+}
+
+function validateQuestion(questionIndex: number) {
+  try {
+    const question = questions.value[questionIndex];
+    questionSchema.parse(question);
+    questionErrors.value[questionIndex] = {};
+    return true;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      questionErrors.value[questionIndex] = {};
+      error.issues.forEach((err) => {
+        if (err.path[0]) {
+          if (!questionErrors.value[questionIndex]) {
+            questionErrors.value[questionIndex] = {};
+          }
+          questionErrors.value[questionIndex][err.path[0] as string] =
+            err.message;
+        }
+      });
+    }
+    return false;
+  }
+}
+
+function validateAIModal() {
+  try {
+    aiModalSchema.parse({
+      focus_areas: aiFocusAreas.value,
+      num_questions: aiNumQuestions.value,
+    });
+    aiModalErrors.value = {};
+    return true;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      aiModalErrors.value = {};
+      error.issues.forEach((err) => {
+        if (err.path[0]) {
+          aiModalErrors.value[err.path[0] as string] = err.message;
+        }
+      });
+    }
+    return false;
+  }
+}
+
+function validateAllQuestions() {
+  let allValid = true;
+  questions.value.forEach((_, index) => {
+    if (!validateQuestion(index)) {
+      allValid = false;
+    }
+  });
+  return allValid;
+}
 
 const questionTypes = [
   { label: "Scale (1-5)", value: "scale" },
@@ -337,13 +565,35 @@ function addQuestion() {
     weight: 1.0,
     options: [],
   });
+  // Initialize error state for the new question
+  questionErrors.value[questions.value.length - 1] = {};
 }
 
 function removeQuestion(index: number) {
   questions.value.splice(index, 1);
+  // Clean up error state for removed question
+  delete questionErrors.value[index];
+  // Reindex remaining error states
+  const newErrors: Record<number, Record<string, string>> = {};
+  Object.keys(questionErrors.value).forEach((key) => {
+    const idx = parseInt(key);
+    const errorData = questionErrors.value[idx];
+    if (errorData) {
+      if (idx > index) {
+        newErrors[idx - 1] = errorData;
+      } else if (idx < index) {
+        newErrors[idx] = errorData;
+      }
+    }
+  });
+  questionErrors.value = newErrors;
 }
 
 async function generateQuestions() {
+  if (!validateAIModal()) {
+    return;
+  }
+
   generating.value = true;
   try {
     const focusAreas = aiFocusAreas.value
@@ -375,13 +625,18 @@ async function generateQuestions() {
 }
 
 async function saveQuestionnaire() {
-  if (!questionnaire.value.title) {
-    alert("Please enter a title");
+  // Validate questionnaire details
+  if (!validateQuestionnaire()) {
     return;
   }
 
+  // Validate all questions
   if (questions.value.length === 0) {
     alert("Please add at least one question");
+    return;
+  }
+
+  if (!validateAllQuestions()) {
     return;
   }
 
