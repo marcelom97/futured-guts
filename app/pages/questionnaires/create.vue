@@ -33,7 +33,7 @@
             <UInput
               v-model="questionnaire.title"
               placeholder="e.g., Fall 2024 Project Team Formation"
-              size="lg"
+              class="w-full"
             />
           </div>
 
@@ -45,6 +45,7 @@
             <UTextarea
               v-model="questionnaire.description"
               placeholder="Describe the purpose of this questionnaire..."
+              class="w-full"
               :rows="3"
             />
           </div>
@@ -115,7 +116,7 @@
                   <UInput
                     v-model="question.question_text"
                     placeholder="Enter question text..."
-                    size="lg"
+                    class="w-full"
                   />
 
                   <div class="grid grid-cols-2 gap-4">
@@ -125,7 +126,10 @@
                       >
                       <USelectMenu
                         v-model="question.question_type"
-                        :options="questionTypes"
+                        :items="questionTypes"
+                        value-key="value"
+                        :search-input="false"
+                        class="w-full"
                       />
                     </div>
 
@@ -135,7 +139,10 @@
                       >
                       <USelectMenu
                         v-model="question.category"
-                        :options="categories"
+                        :items="categories"
+                        value-key="value"
+                        :search-input="false"
+                        class="w-full"
                       />
                     </div>
                   </div>
@@ -148,6 +155,7 @@
                       <UInput
                         v-model="question.trait"
                         placeholder="e.g., teamwork, math"
+                        class="w-full"
                       />
                     </div>
 
@@ -161,6 +169,7 @@
                         step="0.1"
                         min="0"
                         max="5"
+                        class="w-full"
                       />
                     </div>
                   </div>
@@ -293,8 +302,21 @@ const showAIModal = ref(false);
 const aiFocusAreas = ref("teamwork, leadership, communication");
 const aiNumQuestions = ref(10);
 
-const questionTypes = ["scale", "multiple_choice", "text"];
-const categories = ["behavioral", "hard_skill"];
+const questionTypes = [
+  { label: "Scale (1-5)", value: "scale" },
+  { label: "Multiple Choice", value: "multiple_choice" },
+  { label: "Text Response", value: "text" },
+  { label: "Yes/No", value: "yes_no" },
+  { label: "Ranking", value: "ranking" },
+];
+
+const categories = [
+  { label: "Behavioral", value: "behavioral" },
+  { label: "Hard Skills", value: "hard_skill" },
+  { label: "Soft Skills", value: "soft_skill" },
+  { label: "Technical", value: "technical" },
+  { label: "Personality", value: "personality" },
+];
 
 function addQuestion() {
   questions.value.push({
