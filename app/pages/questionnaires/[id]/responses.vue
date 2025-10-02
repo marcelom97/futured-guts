@@ -38,33 +38,34 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <!-- Student Name Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <UIcon name="i-heroicons-user" class="h-4 w-4" />
               Student Name
             </label>
             <UInput
               v-model="filters.studentName"
               placeholder="Search by student name..."
-              icon="i-heroicons-user"
               class="w-full"
             />
           </div>
 
           <!-- Question Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <UIcon name="i-heroicons-document-text" class="h-4 w-4" />
               Question
             </label>
             <UInput
               v-model="filters.question"
               placeholder="Search by question text..."
-              icon="i-heroicons-document-text"
               class="w-full"
             />
           </div>
 
           <!-- Trait Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <UIcon name="i-heroicons-tag" class="h-4 w-4" />
               Trait
             </label>
             <USelectMenu
