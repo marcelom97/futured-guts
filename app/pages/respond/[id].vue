@@ -244,6 +244,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
+const toast = useToast();
 const questionnaire = ref<any>(null);
 const loading = ref(true);
 const submitting = ref(false);
@@ -393,7 +394,93 @@ onMounted(async () => {
   }
 });
 
+// Validation functions
+function validateStudentInfo(): boolean {
+  if (!studentInfo.value.name.trim()) {
+    toast.add({
+      title: "Validation Error",
+      description: "Please enter your name",
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
+    return false;
+  }
+
+  if (!studentInfo.value.email.trim()) {
+    toast.add({
+      title: "Validation Error",
+      description: "Please enter your email",
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
+    return false;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(studentInfo.value.email)) {
+    toast.add({
+      title: "Validation Error",
+      description: "Please enter a valid email address",
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
+    return false;
+  }
+
+  return true;
+}
+
+function validateAllQuestions(): { valid: boolean; firstError?: string } {
+  if (!questionnaire.value || !questionnaire.value.questions) {
+    return { valid: false };
+  }
+
+  for (let i = 0; i < questionnaire.value.questions.length; i++) {
+    const question = questionnaire.value.questions[i];
+    const response = responses.value[question.id];
+
+    if (question.question_type === "ranking") {
+      if (!isRankingComplete(question.id)) {
+        return {
+          valid: false,
+          firstError: `Question ${i + 1}: Please rank all options from 1 to ${
+            question.options?.length || 0
+          }`,
+        };
+      }
+    } else {
+      if (!response || response.trim() === "") {
+        return {
+          valid: false,
+          firstError: `Question ${i + 1}: This question is required`,
+        };
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
 async function submitResponses() {
+  // Validate student info first
+  if (!validateStudentInfo()) {
+    return;
+  }
+
+  // Validate all questions
+  const questionValidation = validateAllQuestions();
+  if (!questionValidation.valid) {
+    toast.add({
+      title: "Incomplete Form",
+      description:
+        questionValidation.firstError || "Please answer all questions",
+      color: "error",
+      icon: "i-heroicons-exclamation-circle",
+    });
+    return;
+  }
+
   submitting.value = true;
   try {
     // First, create/get student
@@ -423,9 +510,23 @@ async function submitResponses() {
     });
 
     submitted.value = true;
-  } catch (error) {
+    toast.add({
+      title: "Success",
+      description: "Your responses have been submitted successfully",
+      color: "success",
+      icon: "i-heroicons-check-circle",
+    });
+  } catch (error: any) {
     console.error("Failed to submit responses:", error);
-    alert("Failed to submit responses. Please try again.");
+    toast.add({
+      title: "Submission Failed",
+      description:
+        error.data?.message ||
+        error.message ||
+        "Failed to submit responses. Please try again.",
+      color: "error",
+      icon: "i-heroicons-x-circle",
+    });
   } finally {
     submitting.value = false;
   }
