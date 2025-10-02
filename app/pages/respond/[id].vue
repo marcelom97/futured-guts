@@ -29,6 +29,28 @@
         </p>
       </div>
 
+      <div v-else-if="alreadyResponded" class="text-center py-12">
+        <div
+          class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4"
+        >
+          <svg
+            class="h-8 w-8 text-yellow-600"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Already Responded</h2>
+        <p class="text-gray-600">
+          You have already submitted your responses to this questionnaire.
+        </p>
+      </div>
+
       <div v-else-if="questionnaire">
         <!-- Header -->
         <div class="mb-8">
@@ -66,6 +88,7 @@
                 placeholder="Enter your email"
                 size="lg"
                 class="w-full"
+                @blur="checkIfAlreadyResponded"
               />
             </div>
           </div>
@@ -249,6 +272,7 @@ const questionnaire = ref<any>(null);
 const loading = ref(true);
 const submitting = ref(false);
 const submitted = ref(false);
+const alreadyResponded = ref(false);
 
 const studentInfo = ref({
   name: "",
@@ -367,6 +391,7 @@ function isRankingComplete(questionId: number): boolean {
 }
 
 const isFormValid = computed(() => {
+  if (alreadyResponded.value) return false;
   if (!studentInfo.value.name || !studentInfo.value.email) return false;
   if (!questionnaire.value) return false;
 
@@ -393,6 +418,42 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+// Check if student has already responded when they enter their email
+async function checkIfAlreadyResponded() {
+  if (!studentInfo.value.email || !questionnaire.value) {
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(studentInfo.value.email)) {
+    return;
+  }
+
+  try {
+    const result: any = await $fetch("/api/responses/check-existing", {
+      method: "POST",
+      body: {
+        email: studentInfo.value.email,
+        questionnaire_id: questionnaire.value.id,
+      },
+    });
+
+    if (result.hasResponded) {
+      alreadyResponded.value = true;
+      toast.add({
+        title: "Already Responded",
+        description:
+          "You have already submitted your responses to this questionnaire.",
+        color: "warning",
+        icon: "i-heroicons-exclamation-triangle",
+      });
+    }
+  } catch (error) {
+    console.error("Failed to check existing responses:", error);
+  }
+}
 
 // Validation functions
 function validateStudentInfo(): boolean {
@@ -518,15 +579,30 @@ async function submitResponses() {
     });
   } catch (error: any) {
     console.error("Failed to submit responses:", error);
-    toast.add({
-      title: "Submission Failed",
-      description:
-        error.data?.message ||
-        error.message ||
-        "Failed to submit responses. Please try again.",
-      color: "error",
-      icon: "i-heroicons-x-circle",
-    });
+
+    // Check if it's a duplicate response error
+    if (error.statusCode === 409 || error.data?.statusCode === 409) {
+      alreadyResponded.value = true;
+      toast.add({
+        title: "Already Responded",
+        description:
+          error.data?.message ||
+          error.message ||
+          "You have already responded to this questionnaire.",
+        color: "warning",
+        icon: "i-heroicons-exclamation-triangle",
+      });
+    } else {
+      toast.add({
+        title: "Submission Failed",
+        description:
+          error.data?.message ||
+          error.message ||
+          "Failed to submit responses. Please try again.",
+        color: "error",
+        icon: "i-heroicons-x-circle",
+      });
+    }
   } finally {
     submitting.value = false;
   }
