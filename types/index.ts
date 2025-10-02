@@ -100,4 +100,6 @@ export interface GenerateGroupsResponse {
 export interface GetGroupsResponse {
   success: boolean;
   groups: Group[];
+  balance_score: number | null;
+  diversity_explanation: string | null;
 }

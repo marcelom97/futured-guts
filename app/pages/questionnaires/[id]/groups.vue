@@ -239,6 +239,8 @@ async function loadGroups() {
     );
     if (response.success) {
       groups.value = response.groups;
+      balanceScore.value = response.balance_score;
+      diversityExplanation.value = response.diversity_explanation || "";
     }
   } catch (error) {
     console.error("Failed to load groups:", error);

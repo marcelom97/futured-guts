@@ -113,19 +113,30 @@ function initializeDatabase(db: Database.Database) {
     )
   `);
 
+  // Grouping metadata table (stores AI analysis for groups)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS grouping_metadata (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      questionnaire_id INTEGER NOT NULL UNIQUE,
+      balance_score REAL,
+      diversity_explanation TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (questionnaire_id) REFERENCES questionnaires(id)
+    )
+  `);
+
   // Insert dummy teacher if none exists
   try {
-    const existingTeacher = db.prepare('SELECT id FROM teachers LIMIT 1').get();
+    const existingTeacher = db.prepare("SELECT id FROM teachers LIMIT 1").get();
     if (!existingTeacher) {
       const stmt = db.prepare(`
         INSERT INTO teachers (name, email) 
         VALUES (?, ?)
       `);
-      const result = stmt.run('Demo Teacher', 'demo@teacher.com');
+      const result = stmt.run("Demo Teacher", "demo@teacher.com");
       console.log(`Created dummy teacher with ID: ${result.lastInsertRowid}`);
     }
   } catch (error) {
-    console.log('Teacher creation check failed:', error);
+    console.log("Teacher creation check failed:", error);
   }
 }
-

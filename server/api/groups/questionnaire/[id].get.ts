@@ -29,9 +29,17 @@ export default defineEventHandler((event) => {
       };
     });
 
+    // Get grouping metadata (balance score and diversity explanation)
+    const metadataStmt = db.prepare(
+      "SELECT balance_score, diversity_explanation FROM grouping_metadata WHERE questionnaire_id = ?"
+    );
+    const metadata = metadataStmt.get(questionnaireId) as any;
+
     return {
       success: true,
       groups: groupsWithMembers,
+      balance_score: metadata?.balance_score || null,
+      diversity_explanation: metadata?.diversity_explanation || null,
     };
   } catch (error) {
     throw createError({
@@ -40,4 +48,3 @@ export default defineEventHandler((event) => {
     });
   }
 });
-

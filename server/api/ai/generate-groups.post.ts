@@ -173,6 +173,8 @@ Also provide:
 - balance_score: 0-100 score indicating how well-balanced the groups are
 - diversity_explanation: Brief explanation of the diversity/balance achieved`;
 
+    console.log(prompt);
+
     console.log(
       `Creating ${adjustedNumGroups} groups from ${students.length} students`
     );
@@ -257,6 +259,22 @@ Also provide:
         reasoning: group.reasoning,
       });
     }
+
+    // Save or update grouping metadata
+    const metadataStmt = db.prepare(`
+      INSERT INTO grouping_metadata (questionnaire_id, balance_score, diversity_explanation, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(questionnaire_id) 
+      DO UPDATE SET 
+        balance_score = excluded.balance_score,
+        diversity_explanation = excluded.diversity_explanation,
+        updated_at = CURRENT_TIMESTAMP
+    `);
+    metadataStmt.run(
+      questionnaire_id,
+      aiResponse.balance_score,
+      aiResponse.diversity_explanation
+    );
 
     return {
       success: true,
