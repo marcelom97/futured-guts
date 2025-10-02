@@ -47,7 +47,7 @@
           </UButton>
           <UButton
             @click="copyStudentLink"
-            color="gray"
+            color="neutral"
             variant="outline"
             icon="i-heroicons-link"
           >
@@ -113,6 +113,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
+const toast = useToast();
 const questionnaire = ref<any>(null);
 const loading = ref(true);
 
@@ -134,6 +135,11 @@ onMounted(async () => {
 function copyStudentLink() {
   const url = `${window.location.origin}/respond/${route.params.id}`;
   navigator.clipboard.writeText(url);
-  alert("Link copied to clipboard!");
+  toast.add({
+    title: "Link Copied",
+    description: "Student link has been copied to clipboard!",
+    color: "success",
+    icon: "i-heroicons-check-circle",
+  });
 }
 </script>

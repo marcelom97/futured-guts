@@ -25,7 +25,7 @@
             <UButton
               v-if="groups.length > 0"
               @click="showControls = false"
-              color="gray"
+              color="neutral"
               variant="ghost"
               icon="i-heroicons-x-mark"
             >
@@ -143,11 +143,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <UCard
-            v-for="group in groups"
-            :key="group.id"
-            :ui="{ body: { padding: 'p-0 sm:p-0' } }"
-          >
+          <UCard v-for="group in groups" :key="group.id">
             <template #header>
               <div class="flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-gray-900">
@@ -188,7 +184,7 @@
             <template #footer>
               <UButton
                 @click="editGroup(group)"
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 size="sm"
                 block
@@ -225,8 +221,15 @@
 </template>
 
 <script setup lang="ts">
+import type {
+  Group,
+  GenerateGroupsResponse,
+  GetGroupsResponse,
+} from "../../../../types";
+
 const route = useRoute();
-const groups = ref<any[]>([]);
+const toast = useToast();
+const groups = ref<Group[]>([]);
 const generating = ref(false);
 const showControls = ref(false);
 const numGroups = ref(4);
@@ -271,7 +274,7 @@ onMounted(async () => {
 
 async function loadGroups() {
   try {
-    const response = await $fetch(
+    const response = await $fetch<GetGroupsResponse>(
       `/api/groups/questionnaire/${route.params.id}`
     );
     if (response.success) {
@@ -285,14 +288,17 @@ async function loadGroups() {
 async function generateGroups() {
   generating.value = true;
   try {
-    const response = await $fetch("/api/ai/generate-groups", {
-      method: "POST",
-      body: {
-        questionnaire_id: route.params.id,
-        num_groups: numGroups.value,
-        grouping_strategy: groupingStrategy.value,
-      },
-    });
+    const response = await $fetch<GenerateGroupsResponse>(
+      "/api/ai/generate-groups",
+      {
+        method: "POST",
+        body: {
+          questionnaire_id: route.params.id,
+          num_groups: numGroups.value,
+          grouping_strategy: groupingStrategy.value,
+        },
+      }
+    );
 
     if (response.success) {
       balanceScore.value = response.balance_score;
@@ -302,16 +308,25 @@ async function generateGroups() {
     }
   } catch (error) {
     console.error("Failed to generate groups:", error);
-    alert(
-      "Failed to generate groups. Please ensure students have submitted responses."
-    );
+    toast.add({
+      title: "Generation Failed",
+      description:
+        "Failed to generate groups. Please ensure students have submitted responses.",
+      color: "error",
+      icon: "i-heroicons-x-circle",
+    });
   } finally {
     generating.value = false;
   }
 }
 
-function editGroup(group: any) {
+function editGroup(group: Group) {
   // Implement edit functionality
-  alert(`Edit functionality for ${group.name} - Coming soon!`);
+  toast.add({
+    title: "Coming Soon",
+    description: `Edit functionality for ${group.name} will be available soon!`,
+    color: "info",
+    icon: "i-heroicons-information-circle",
+  });
 }
 </script>

@@ -79,3 +79,21 @@ export interface GroupingResult {
   balance_score: number;
   diversity_metrics: Record<string, number>;
 }
+
+// API Response Types
+export interface GenerateGroupsResponse {
+  success: boolean;
+  groups: Array<{
+    id: number | bigint;
+    name: string;
+    student_ids: number[];
+    reasoning: string;
+  }>;
+  balance_score: number;
+  diversity_explanation: string;
+}
+
+export interface GetGroupsResponse {
+  success: boolean;
+  groups: Group[];
+}
