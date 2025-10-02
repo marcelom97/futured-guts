@@ -63,11 +63,13 @@
               </div>
               <UButton
                 @click="showAIModal = true"
+                :loading="generating"
+                :disabled="generating"
                 color="primary"
                 variant="soft"
                 icon="i-heroicons-sparkles"
               >
-                Generate with AI
+                {{ generating ? "Generating..." : "Generate with AI" }}
               </UButton>
             </div>
           </div>
@@ -216,14 +218,22 @@
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton to="/" color="neutral" variant="outline">Cancel</UButton>
+            <UButton
+              to="/"
+              color="neutral"
+              variant="outline"
+              :disabled="saving"
+            >
+              Cancel
+            </UButton>
             <UButton
               @click="saveQuestionnaire"
               :loading="saving"
+              :disabled="saving"
               color="primary"
               icon="i-heroicons-check"
             >
-              Create Questionnaire
+              {{ saving ? "Creating..." : "Create Questionnaire" }}
             </UButton>
           </div>
         </template>
@@ -231,12 +241,8 @@
     </div>
 
     <!-- AI Generation Modal -->
-    <UModal v-model="showAIModal">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">AI Question Generation</h3>
-        </template>
-
+    <UModal v-model:open="showAIModal" title="AI Question Generation">
+      <template #body>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -248,6 +254,7 @@
             <UInput
               v-model="aiFocusAreas"
               placeholder="e.g., teamwork, leadership, communication, math, writing"
+              class="w-full"
             />
           </div>
 
@@ -260,30 +267,33 @@
               type="number"
               min="3"
               max="20"
+              class="w-full"
             />
           </div>
         </div>
+      </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-3">
-            <UButton
-              @click="showAIModal = false"
-              color="neutral"
-              variant="outline"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              @click="generateQuestions"
-              :loading="generating"
-              color="primary"
-              icon="i-heroicons-sparkles"
-            >
-              Generate Questions
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+      <template #footer>
+        <div class="flex items-center justify-end gap-3">
+          <UButton
+            @click="showAIModal = false"
+            color="neutral"
+            variant="outline"
+            :disabled="generating"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            @click="generateQuestions"
+            :loading="generating"
+            :disabled="generating"
+            color="primary"
+            icon="i-heroicons-sparkles"
+          >
+            {{ generating ? "Generating..." : "Generate Questions" }}
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>

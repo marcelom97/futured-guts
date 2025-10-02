@@ -4,8 +4,20 @@ import { z } from "zod";
 
 const QuestionSchema = z.object({
   question_text: z.string(),
-  question_type: z.enum(["scale", "multiple_choice", "text"]),
-  category: z.enum(["behavioral", "hard_skill"]),
+  question_type: z.enum([
+    "scale",
+    "multiple_choice",
+    "text",
+    "yes_no",
+    "ranking",
+  ]),
+  category: z.enum([
+    "behavioral",
+    "hard_skill",
+    "soft_skill",
+    "technical",
+    "personality",
+  ]),
   trait: z.string(),
   weight: z.number().default(1.0),
   options: z.array(z.string()).optional(),
@@ -31,11 +43,17 @@ export default defineEventHandler(async (event) => {
 Focus areas: ${focus_areas.join(", ")}
 
 For each question:
-- Create questions that assess specific traits (e.g., teamwork, leadership, communication for behavioral; or specific skills like writing, math, problem-solving for hard_skills)
-- Use appropriate question types: 'scale' (1-5 rating), 'multiple_choice', or 'text'
-- Categorize as 'behavioral' (personality/work style) or 'hard_skill' (technical ability)
+- Create questions that assess specific traits from the focus areas
+- Use appropriate question types: 'scale' (1-5 rating), 'multiple_choice', 'text' (open-ended), 'yes_no', or 'ranking'
+- Categorize appropriately:
+  - 'behavioral': personality, work style, preferences
+  - 'hard_skill': technical abilities, specific subject knowledge
+  - 'soft_skill': communication, teamwork, leadership
+  - 'technical': coding, tools, methodologies
+  - 'personality': character traits, thinking styles
 - For multiple choice questions, provide 4-5 diverse options
 - Assign a default weight of 1.0 (teachers can adjust later)
+- Set the trait field to the specific trait being assessed (e.g., 'teamwork', 'leadership', 'math')
 
 Make questions clear, unbiased, and suitable for student team formation in educational settings.`;
 
@@ -56,4 +74,3 @@ Make questions clear, unbiased, and suitable for student team formation in educa
     });
   }
 });
-
