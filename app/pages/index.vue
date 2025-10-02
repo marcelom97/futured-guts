@@ -16,19 +16,7 @@
         >
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-blue-50 rounded-lg">
-              <svg
-                class="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+              <UIcon name="i-heroicons-document-text" class="w-6 h-6 text-blue-600" />
             </div>
             <h3 class="text-lg font-semibold text-gray-900">
               Create Questionnaire
@@ -41,6 +29,7 @@
             to="/questionnaires/create"
             color="primary"
             block
+            size="sm"
             icon="i-heroicons-plus"
           >
             New Questionnaire
@@ -52,19 +41,7 @@
         >
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-green-50 rounded-lg">
-              <svg
-                class="w-6 h-6 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
+              <UIcon name="i-heroicons-users" class="w-6 h-6 text-green-600" />
             </div>
             <h3 class="text-lg font-semibold text-gray-900">Manage Students</h3>
           </div>
@@ -76,6 +53,7 @@
             color="primary"
             variant="outline"
             block
+            size="sm"
             icon="i-heroicons-user-group"
           >
             View Students
@@ -87,19 +65,7 @@
         >
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-purple-50 rounded-lg">
-              <svg
-                class="w-6 h-6 text-purple-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
+              <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-purple-600" />
             </div>
             <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
           </div>
@@ -110,6 +76,7 @@
             color="primary"
             variant="soft"
             block
+            size="sm"
             icon="i-heroicons-chart-bar"
             disabled
           >
@@ -127,25 +94,15 @@
         </div>
 
         <div v-if="loading" class="p-8 text-center">
-          <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
-          ></div>
+          <UIcon name="i-heroicons-arrow-path" class="animate-spin h-8 w-8 text-primary mx-auto" />
+          <p class="mt-2 text-sm text-gray-600">Loading questionnaires...</p>
         </div>
 
         <div v-else-if="questionnaires.length === 0" class="p-8 text-center">
-          <svg
+          <UIcon
+            name="i-heroicons-document-text"
             class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
+          />
           <h3 class="mt-2 text-sm font-medium text-gray-900">
             No questionnaires
           </h3>
@@ -168,17 +125,24 @@
           >
             <div class="flex items-center justify-between">
               <div class="flex-1">
-                <h3 class="text-lg font-medium text-gray-900">{{ q.title }}</h3>
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-heroicons-document-text" class="h-5 w-5 text-gray-400" />
+                  <h3 class="text-lg font-medium text-gray-900">{{ q.title }}</h3>
+                </div>
                 <p class="mt-1 text-sm text-gray-500">{{ q.description }}</p>
-                <p class="mt-2 text-xs text-gray-400">
-                  Created: {{ new Date(q.created_at).toLocaleDateString() }}
-                </p>
+                <div class="flex items-center gap-1 mt-2">
+                  <UIcon name="i-heroicons-calendar" class="h-3 w-3 text-gray-400" />
+                  <p class="text-xs text-gray-400">
+                    Created {{ new Date(q.created_at).toLocaleDateString() }}
+                  </p>
+                </div>
               </div>
               <div class="flex items-center gap-2">
                 <UButton
                   :to="`/questionnaires/${q.id}/responses`"
                   variant="ghost"
-                  icon="i-heroicons-document-text"
+                  size="sm"
+                  icon="i-heroicons-document-chart-bar"
                   @click.stop
                 >
                   Responses
@@ -186,7 +150,8 @@
                 <UButton
                   :to="`/questionnaires/${q.id}/groups`"
                   variant="soft"
-                  icon="i-heroicons-user-group"
+                  size="sm"
+                  icon="i-heroicons-users"
                   @click.stop
                 >
                   Generate Groups
@@ -225,6 +190,7 @@
           <UButton
             :to="`/questionnaires/${selectedQuestionnaire?.id}`"
             color="primary"
+            size="sm"
             icon="i-heroicons-eye"
           >
             View Details
@@ -232,14 +198,16 @@
           <UButton
             :to="`/questionnaires/${selectedQuestionnaire?.id}/responses`"
             variant="outline"
-            icon="i-heroicons-document-text"
+            size="sm"
+            icon="i-heroicons-document-chart-bar"
           >
             View Responses
           </UButton>
           <UButton
             :to="`/questionnaires/${selectedQuestionnaire?.id}/groups`"
             variant="soft"
-            icon="i-heroicons-user-group"
+            size="sm"
+            icon="i-heroicons-users"
           >
             Generate Groups
           </UButton>
