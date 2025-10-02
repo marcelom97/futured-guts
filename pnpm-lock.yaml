@@ -66,6 +66,9 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11
     devDependencies:
+      '@iconify-json/heroicons':
+        specifier: ^1.2.3
+        version: 1.2.3
       '@types/better-sqlite3':
         specifier: ^7.6.13
         version: 7.6.13
@@ -539,6 +542,9 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@iconify-json/heroicons@1.2.3':
+    resolution: {integrity: sha512-n+vmCEgTesRsOpp5AB5ILB6srsgsYK+bieoQBNlafvoEhjVXLq8nIGN4B0v/s4DUfa0dOrjwE/cKJgIKdJXOEg==}
 
   '@iconify/collections@1.0.601':
     resolution: {integrity: sha512-0rTkng4arHTfeEPA+h5zHHBCdvRsWxcrGbit+dOGyRqNj7Rtx3PwBtdh/q9+h8wai5j+wcbkaJSQPHqgRLb2zw==}
@@ -5919,6 +5925,10 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/retry@0.4.3': {}
+
+  '@iconify-json/heroicons@1.2.3':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify/collections@1.0.601':
     dependencies:

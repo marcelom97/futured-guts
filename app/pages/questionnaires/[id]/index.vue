@@ -72,24 +72,33 @@
                   {{ index + 1 }}. {{ question.question_text }}
                 </p>
                 <span
-                  class="text-xs px-2 py-1 rounded-full"
+                  class="text-xs px-2 py-1 rounded-full font-medium"
                   :class="{
                     'bg-blue-100 text-blue-700':
                       question.category === 'behavioral',
                     'bg-green-100 text-green-700':
                       question.category === 'hard_skill',
+                    'bg-purple-100 text-purple-700':
+                      question.category === 'soft_skill',
+                    'bg-orange-100 text-orange-700':
+                      question.category === 'technical',
+                    'bg-pink-100 text-pink-700':
+                      question.category === 'personality',
                   }"
                 >
-                  {{ question.category }}
+                  {{ formatCategory(question.category) }}
                 </span>
               </div>
 
               <div class="flex items-center gap-4 text-sm text-gray-500">
-                <span>Type: {{ question.question_type }}</span>
-                <span>•</span>
-                <span>Trait: {{ question.trait }}</span>
-                <span>•</span>
-                <span>Weight: {{ question.weight }}</span>
+                <span class="font-medium text-gray-600">Type:</span>
+                <span>{{ formatQuestionType(question.question_type) }}</span>
+                <span class="text-gray-300">•</span>
+                <span class="font-medium text-gray-600">Traits:</span>
+                <span>{{ formatTraits(question.trait) }}</span>
+                <span class="text-gray-300">•</span>
+                <span class="font-medium text-gray-600">Weight:</span>
+                <span>{{ formatWeight(question.weight) }}</span>
               </div>
 
               <div
@@ -141,5 +150,50 @@ function copyStudentLink() {
     color: "success",
     icon: "i-heroicons-check-circle",
   });
+}
+
+// Formatting functions for consistent data display
+function formatCategory(category: string): string {
+  const categoryMap: Record<string, string> = {
+    behavioral: "Behavioral",
+    hard_skill: "Hard Skill",
+    soft_skill: "Soft Skill",
+    technical: "Technical",
+    personality: "Personality",
+  };
+  return categoryMap[category] || category;
+}
+
+function formatQuestionType(type: string): string {
+  const typeMap: Record<string, string> = {
+    scale: "Scale (1-5)",
+    multiple_choice: "Multiple Choice",
+    text: "Text Response",
+    yes_no: "Yes/No",
+    ranking: "Ranking",
+  };
+  return typeMap[type] || type;
+}
+
+function formatTraits(traits: string | string[]): string {
+  if (!traits) return "None";
+
+  const formatSingleTrait = (trait: string): string => {
+    return trait
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  if (typeof traits === "string") return formatSingleTrait(traits);
+  if (Array.isArray(traits)) {
+    return traits.map(formatSingleTrait).join(", ");
+  }
+  return "None";
+}
+
+function formatWeight(weight: number): string {
+  if (weight === 1 || weight === 1.0) return "Standard";
+  return `${weight.toFixed(1)}x`;
 }
 </script>

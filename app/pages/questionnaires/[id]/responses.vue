@@ -95,15 +95,21 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
-                    class="text-xs px-2 py-1 rounded-full"
+                    class="text-xs px-2 py-1 rounded-full font-medium"
                     :class="{
                       'bg-blue-100 text-blue-700':
                         response.category === 'behavioral',
                       'bg-green-100 text-green-700':
                         response.category === 'hard_skill',
+                      'bg-purple-100 text-purple-700':
+                        response.category === 'soft_skill',
+                      'bg-orange-100 text-orange-700':
+                        response.category === 'technical',
+                      'bg-pink-100 text-pink-700':
+                        response.category === 'personality',
                     }"
                   >
-                    {{ response.trait }}
+                    {{ formatTraits(response.trait) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -142,4 +148,22 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+// Formatting function for consistent data display
+function formatTraits(traits: string | string[]): string {
+  if (!traits) return "None";
+
+  const formatSingleTrait = (trait: string): string => {
+    return trait
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  if (typeof traits === "string") return formatSingleTrait(traits);
+  if (Array.isArray(traits)) {
+    return traits.map(formatSingleTrait).join(", ");
+  }
+  return "None";
+}
 </script>
