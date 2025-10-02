@@ -17,7 +17,76 @@
         </p>
       </div>
 
+      <!-- Filters Section -->
+      <UCard class="mb-6">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-funnel" class="h-5 w-5 text-gray-400" />
+            <h3 class="text-lg font-medium text-gray-900">Filters</h3>
+            <UButton
+              v-if="hasActiveFilters"
+              variant="ghost"
+              size="xs"
+              icon="i-heroicons-x-mark"
+              @click="clearFilters"
+            >
+              Clear All
+            </UButton>
+          </div>
+        </template>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Student Name Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Student Name
+            </label>
+            <UInput
+              v-model="filters.studentName"
+              placeholder="Search by student name..."
+              icon="i-heroicons-user"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Question Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Question
+            </label>
+            <UInput
+              v-model="filters.question"
+              placeholder="Search by question text..."
+              icon="i-heroicons-document-text"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Trait Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Trait
+            </label>
+            <USelectMenu
+              v-model="filters.trait"
+              :options="traitOptions"
+              placeholder="Select trait..."
+              class="w-full"
+            />
+          </div>
+        </div>
+      </UCard>
+
       <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900">Responses</h3>
+            <div v-if="!loading && responses.length > 0" class="text-sm text-gray-500">
+              Showing {{ filteredResponses.length }} of {{ responses.length }} responses
+            </div>
+          </div>
+        </template>
+
         <div v-if="loading" class="text-center py-8">
           <USpinner size="lg" />
         </div>
@@ -33,6 +102,29 @@
           <p class="mt-1 text-sm text-gray-500">
             Students haven't submitted any responses yet.
           </p>
+        </div>
+
+        <div v-else-if="filteredResponses.length === 0" class="text-center py-12">
+          <UIcon
+            name="i-heroicons-funnel"
+            class="mx-auto h-12 w-12 text-gray-400"
+          />
+          <h3 class="mt-2 text-sm font-medium text-gray-900">
+            No responses match your filters
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Try adjusting your filter criteria to see more results.
+          </p>
+          <div class="mt-4">
+            <UButton
+              variant="outline"
+              size="sm"
+              icon="i-heroicons-x-mark"
+              @click="clearFilters"
+            >
+              Clear Filters
+            </UButton>
+          </div>
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -68,7 +160,7 @@
             </thead>
             <tbody class="divide-y divide-gray-200">
               <tr
-                v-for="response in responses"
+                v-for="response in filteredResponses"
                 :key="response.id"
                 class="hover:bg-gray-50"
               >
@@ -109,9 +201,85 @@
 </template>
 
 <script setup lang="ts">
+interface Response {
+  id: number;
+  student_name: string;
+  question_text: string;
+  trait: string;
+  category: string;
+  response_value: string;
+  created_at: string;
+}
+
+interface Filters {
+  studentName: string;
+  question: string;
+  trait: string;
+}
+
 const route = useRoute();
-const responses = ref<any[]>([]);
+const responses = ref<Response[]>([]);
 const loading = ref(true);
+
+// Filter reactive variables
+const filters = ref<Filters>({
+  studentName: '',
+  question: '',
+  trait: ''
+});
+
+// Computed properties for filtering
+const filteredResponses = computed(() => {
+  let filtered = responses.value;
+
+  // Filter by student name
+  if (filters.value.studentName) {
+    filtered = filtered.filter(response => 
+      response.student_name.toLowerCase().includes(filters.value.studentName.toLowerCase())
+    );
+  }
+
+  // Filter by question
+  if (filters.value.question) {
+    filtered = filtered.filter(response => 
+      response.question_text.toLowerCase().includes(filters.value.question.toLowerCase())
+    );
+  }
+
+  // Filter by trait
+  if (filters.value.trait) {
+    filtered = filtered.filter(response => 
+      response.trait === filters.value.trait
+    );
+  }
+
+  return filtered;
+});
+
+const hasActiveFilters = computed(() => {
+  return filters.value.studentName !== '' || 
+         filters.value.question !== '' || 
+         filters.value.trait !== '';
+});
+
+const traitOptions = computed(() => {
+  const uniqueTraits = [...new Set(responses.value.map(r => r.trait))];
+  return [
+    { label: 'All Traits', value: '' },
+    ...uniqueTraits.map(trait => ({
+      label: formatTraits(trait),
+      value: trait
+    }))
+  ];
+});
+
+function clearFilters() {
+  filters.value = {
+    studentName: '',
+    question: '',
+    trait: ''
+  };
+}
 
 onMounted(async () => {
   try {
@@ -119,7 +287,7 @@ onMounted(async () => {
       `/api/responses/questionnaire/${route.params.id}`
     );
     if (response.success) {
-      responses.value = response.responses;
+      responses.value = response.responses || [];
     }
   } catch (error) {
     console.error("Failed to load responses:", error);
