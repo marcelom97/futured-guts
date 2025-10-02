@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <UContainer class="py-12">
       <UButton
         to="/"
         variant="ghost"
@@ -11,9 +11,7 @@
       </UButton>
 
       <div v-if="loading" class="text-center py-12">
-        <div
-          class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"
-        ></div>
+        <USpinner size="lg" />
       </div>
 
       <div v-else-if="questionnaire">
@@ -71,23 +69,12 @@
                 <p class="font-medium text-gray-900">
                   {{ index + 1 }}. {{ question.question_text }}
                 </p>
-                <span
-                  class="text-xs px-2 py-1 rounded-full font-medium"
-                  :class="{
-                    'bg-blue-100 text-blue-700':
-                      question.category === 'behavioral',
-                    'bg-green-100 text-green-700':
-                      question.category === 'hard_skill',
-                    'bg-purple-100 text-purple-700':
-                      question.category === 'soft_skill',
-                    'bg-orange-100 text-orange-700':
-                      question.category === 'technical',
-                    'bg-pink-100 text-pink-700':
-                      question.category === 'personality',
-                  }"
+                <UBadge
+                  :color="getCategoryColor(question.category)"
+                  variant="subtle"
                 >
                   {{ formatCategory(question.category) }}
-                </span>
+                </UBadge>
               </div>
 
               <div class="flex items-center gap-4 text-sm text-gray-500">
@@ -116,7 +103,7 @@
           </div>
         </UCard>
       </div>
-    </div>
+    </UContainer>
   </div>
 </template>
 
@@ -162,6 +149,22 @@ function formatCategory(category: string): string {
     personality: "Personality",
   };
   return categoryMap[category] || category;
+}
+
+function getCategoryColor(
+  category: string
+): "primary" | "success" | "info" | "warning" | "error" {
+  const colorMap: Record<
+    string,
+    "primary" | "success" | "info" | "warning" | "error"
+  > = {
+    behavioral: "primary",
+    hard_skill: "success",
+    soft_skill: "info",
+    technical: "warning",
+    personality: "error",
+  };
+  return colorMap[category] || "primary";
 }
 
 function formatQuestionType(type: string): string {

@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <UContainer class="py-12">
       <UButton
         to="/"
         variant="ghost"
@@ -26,25 +26,14 @@
 
       <UCard>
         <div v-if="loading" class="text-center py-8">
-          <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
-          ></div>
+          <USpinner size="lg" />
         </div>
 
         <div v-else-if="students.length === 0" class="text-center py-12">
-          <svg
+          <UIcon
+            name="i-heroicons-users"
             class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-            />
-          </svg>
+          />
           <h3 class="mt-2 text-sm font-medium text-gray-900">No students</h3>
           <p class="mt-1 text-sm text-gray-500">
             Get started by adding a student.
@@ -84,21 +73,18 @@
                 class="hover:bg-gray-50"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div
-                      class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold"
-                    >
-                      {{ student.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ student.name }}
-                      </div>
-                    </div>
+                  <div class="flex items-center gap-3">
+                    <UAvatar
+                      :text="student.name.charAt(0).toUpperCase()"
+                      size="md"
+                    />
+                    <span class="text-sm font-medium text-gray-900">{{
+                      student.name
+                    }}</span>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ student.email }}</div>
+                  <span class="text-sm text-gray-900">{{ student.email }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ new Date(student.created_at).toLocaleDateString() }}
@@ -108,7 +94,7 @@
           </table>
         </div>
       </UCard>
-    </div>
+    </UContainer>
 
     <!-- Add Student Modal -->
     <UModal v-model:open="showAddModal" title="Add Student">
