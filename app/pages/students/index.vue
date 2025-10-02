@@ -101,15 +101,17 @@
                   <div class="flex items-center">
                     <button
                       v-if="student.group_count > 0"
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
                       @click="openGroupsModal(student)"
                     >
+                      <UIcon name="i-heroicons-users" class="h-3 w-3" />
                       {{ student.group_count }} {{ student.group_count === 1 ? 'group' : 'groups' }}
                     </button>
                     <span
                       v-else
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
                     >
+                      <UIcon name="i-heroicons-users" class="h-3 w-3" />
                       0 groups
                     </span>
                   </div>
@@ -118,15 +120,17 @@
                   <div class="flex items-center">
                     <button
                       v-if="student.questionnaire_count > 0"
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer"
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer"
                       @click="openQuestionnairesModal(student)"
                     >
+                      <UIcon name="i-heroicons-document-text" class="h-3 w-3" />
                       {{ student.questionnaire_count }} {{ student.questionnaire_count === 1 ? 'questionnaire' : 'questionnaires' }}
                     </button>
                     <span
                       v-else
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
                     >
+                      <UIcon name="i-heroicons-document-text" class="h-3 w-3" />
                       0 questionnaires
                     </span>
                   </div>
@@ -490,6 +494,12 @@ async function addStudent() {
     await loadStudents();
     showAddModal.value = false;
     newStudent.value = { name: "", email: "" };
+    
+    toast.add({
+      title: "Success",
+      description: "Student added successfully",
+      color: "success"
+    });
   } catch (error) {
     console.error("Failed to add student:", error);
     toast.add({
