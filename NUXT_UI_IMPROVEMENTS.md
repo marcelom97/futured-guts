@@ -31,11 +31,9 @@ Replaced custom container divs with `UContainer` component for better responsive
 
 ---
 
-### 2. **USpinner**
+### 2. **Loading Spinners**
 
-Replaced custom loading spinners with `USpinner` component:
-
-**Before:**
+**Note:** Nuxt UI v4 does not have a dedicated `USpinner` component. Custom loading spinners using Tailwind CSS are used throughout the application:
 
 ```vue
 <div
@@ -43,13 +41,7 @@ Replaced custom loading spinners with `USpinner` component:
 ></div>
 ```
 
-**After:**
-
-```vue
-<USpinner size="lg" />
-```
-
-**Files Updated:**
+**Files Using Custom Spinners:**
 
 - ✅ `index.vue`
 - ✅ `students/index.vue`

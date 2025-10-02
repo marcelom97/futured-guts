@@ -11,7 +11,9 @@
       </UButton>
 
       <div v-if="loading" class="text-center py-12">
-        <USpinner size="lg" />
+        <div
+          class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"
+        ></div>
       </div>
 
       <div v-else-if="questionnaire">

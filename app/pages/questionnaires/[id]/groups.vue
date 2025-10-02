@@ -55,7 +55,7 @@
               </label>
               <USelect
                 v-model="groupingStrategy"
-                :options="strategies"
+                :items="strategies"
                 size="lg"
               />
             </div>
@@ -265,6 +265,23 @@ async function generateGroups() {
       diversityExplanation.value = response.diversity_explanation;
       await loadGroups();
       showControls.value = false;
+
+      // Show notification if groups were adjusted
+      if (response.adjusted_groups) {
+        toast.add({
+          title: "Groups Adjusted",
+          description: `Created ${response.created_groups} groups instead of ${response.requested_groups} due to having only ${response.total_students} students. Each group needs at least 2 students.`,
+          color: "warning",
+          icon: "i-heroicons-information-circle",
+        });
+      } else {
+        toast.add({
+          title: "Success",
+          description: `Successfully generated ${response.created_groups} groups!`,
+          color: "success",
+          icon: "i-heroicons-check-circle",
+        });
+      }
     }
   } catch (error) {
     console.error("Failed to generate groups:", error);

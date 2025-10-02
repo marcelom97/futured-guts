@@ -91,6 +91,10 @@ export interface GenerateGroupsResponse {
   }>;
   balance_score: number;
   diversity_explanation: string;
+  adjusted_groups: boolean;
+  requested_groups: number;
+  created_groups: number;
+  total_students: number;
 }
 
 export interface GetGroupsResponse {

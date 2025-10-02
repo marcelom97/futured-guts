@@ -26,7 +26,10 @@
 
       <UCard>
         <div v-if="loading" class="text-center py-8">
-          <UIcon name="i-heroicons-arrow-path" class="animate-spin h-8 w-8 text-primary mx-auto" />
+          <UIcon
+            name="i-heroicons-arrow-path"
+            class="animate-spin h-8 w-8 text-primary mx-auto"
+          />
           <p class="mt-2 text-sm text-gray-600">Loading students...</p>
         </div>
 
@@ -105,7 +108,8 @@
                       @click="openGroupsModal(student)"
                     >
                       <UIcon name="i-heroicons-users" class="h-3 w-3" />
-                      {{ student.group_count }} {{ student.group_count === 1 ? 'group' : 'groups' }}
+                      {{ student.group_count }}
+                      {{ student.group_count === 1 ? "group" : "groups" }}
                     </button>
                     <span
                       v-else
@@ -124,7 +128,12 @@
                       @click="openQuestionnairesModal(student)"
                     >
                       <UIcon name="i-heroicons-document-text" class="h-3 w-3" />
-                      {{ student.questionnaire_count }} {{ student.questionnaire_count === 1 ? 'questionnaire' : 'questionnaires' }}
+                      {{ student.questionnaire_count }}
+                      {{
+                        student.questionnaire_count === 1
+                          ? "questionnaire"
+                          : "questionnaires"
+                      }}
                     </button>
                     <span
                       v-else
@@ -199,10 +208,16 @@
     </UModal>
 
     <!-- Student Groups Modal -->
-    <UModal v-model:open="showGroupsModal" :title="`${selectedStudent?.name}'s Groups`">
+    <UModal
+      v-model:open="showGroupsModal"
+      :title="`${selectedStudent?.name}'s Groups`"
+    >
       <template #body>
         <div v-if="loadingGroups" class="text-center py-8">
-          <UIcon name="i-heroicons-arrow-path" class="animate-spin h-8 w-8 text-primary mx-auto" />
+          <UIcon
+            name="i-heroicons-arrow-path"
+            class="animate-spin h-8 w-8 text-primary mx-auto"
+          />
           <p class="mt-2 text-sm text-gray-600">Loading groups...</p>
         </div>
 
@@ -235,26 +250,42 @@
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-heroicons-users" class="h-4 w-4 text-gray-400" />
-                  <h3 class="text-sm font-medium text-gray-900">{{ group.name }}</h3>
+                  <UIcon
+                    name="i-heroicons-users"
+                    class="h-4 w-4 text-gray-400"
+                  />
+                  <h3 class="text-sm font-medium text-gray-900">
+                    {{ group.name }}
+                  </h3>
                 </div>
                 <div class="flex items-center gap-1 mt-1">
-                  <UIcon name="i-heroicons-document-text" class="h-3 w-3 text-gray-400" />
+                  <UIcon
+                    name="i-heroicons-document-text"
+                    class="h-3 w-3 text-gray-400"
+                  />
                   <p class="text-xs text-gray-500">
                     Questionnaire: {{ group.questionnaire_title }}
                   </p>
                 </div>
                 <div class="flex items-center gap-4 mt-1">
                   <div class="flex items-center gap-1">
-                    <UIcon name="i-heroicons-user-group" class="h-3 w-3 text-gray-400" />
+                    <UIcon
+                      name="i-heroicons-user-group"
+                      class="h-3 w-3 text-gray-400"
+                    />
                     <p class="text-xs text-gray-400">
-                      {{ group.member_count }} {{ group.member_count === 1 ? 'member' : 'members' }}
+                      {{ group.member_count }}
+                      {{ group.member_count === 1 ? "member" : "members" }}
                     </p>
                   </div>
                   <div class="flex items-center gap-1">
-                    <UIcon name="i-heroicons-calendar" class="h-3 w-3 text-gray-400" />
+                    <UIcon
+                      name="i-heroicons-calendar"
+                      class="h-3 w-3 text-gray-400"
+                    />
                     <p class="text-xs text-gray-400">
-                      Created {{ new Date(group.created_at).toLocaleDateString() }}
+                      Created
+                      {{ new Date(group.created_at).toLocaleDateString() }}
                     </p>
                   </div>
                 </div>
@@ -269,7 +300,7 @@
                 View Group
               </UButton>
             </div>
-            
+
             <div v-if="group.members.length > 0" class="mt-3">
               <div class="flex items-center gap-1 mb-2">
                 <UIcon name="i-heroicons-users" class="h-3 w-3 text-gray-400" />
@@ -305,19 +336,30 @@
     </UModal>
 
     <!-- Student Questionnaires Modal -->
-    <UModal v-model:open="showQuestionnairesModal" :title="`${selectedStudent?.name}'s Questionnaires`">
+    <UModal
+      v-model:open="showQuestionnairesModal"
+      :title="`${selectedStudent?.name}'s Questionnaires`"
+    >
       <template #body>
         <div v-if="loadingQuestionnaires" class="text-center py-8">
-          <UIcon name="i-heroicons-arrow-path" class="animate-spin h-8 w-8 text-primary mx-auto" />
+          <UIcon
+            name="i-heroicons-arrow-path"
+            class="animate-spin h-8 w-8 text-primary mx-auto"
+          />
           <p class="mt-2 text-sm text-gray-600">Loading questionnaires...</p>
         </div>
 
-        <div v-else-if="studentQuestionnaires.length === 0" class="text-center py-8">
+        <div
+          v-else-if="studentQuestionnaires.length === 0"
+          class="text-center py-8"
+        >
           <UIcon
             name="i-heroicons-document-text"
             class="mx-auto h-12 w-12 text-gray-400"
           />
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No questionnaires</h3>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">
+            No questionnaires
+          </h3>
           <p class="mt-1 text-sm text-gray-500">
             This student hasn't completed any questionnaires yet.
           </p>
@@ -332,33 +374,57 @@
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-heroicons-document-text" class="h-4 w-4 text-gray-400" />
-                  <h3 class="text-sm font-medium text-gray-900">{{ questionnaire.title }}</h3>
+                  <UIcon
+                    name="i-heroicons-document-text"
+                    class="h-4 w-4 text-gray-400"
+                  />
+                  <h3 class="text-sm font-medium text-gray-900">
+                    {{ questionnaire.title }}
+                  </h3>
                 </div>
-                <p v-if="questionnaire.description" class="text-xs text-gray-500 mt-1 ml-6">
+                <p
+                  v-if="questionnaire.description"
+                  class="text-xs text-gray-500 mt-1 ml-6"
+                >
                   {{ questionnaire.description }}
                 </p>
                 <div class="flex items-center gap-4 mt-2 ml-6">
                   <div class="flex items-center gap-1">
-                    <UIcon name="i-heroicons-clipboard-document-check" class="h-3 w-3 text-gray-400" />
+                    <UIcon
+                      name="i-heroicons-clipboard-document-check"
+                      class="h-3 w-3 text-gray-400"
+                    />
                     <span class="text-xs text-gray-500">
-                      {{ questionnaire.answered_questions }}/{{ questionnaire.total_questions }} questions answered
+                      {{ questionnaire.answered_questions }}/{{
+                        questionnaire.total_questions
+                      }}
+                      questions answered
                     </span>
                   </div>
                   <div class="flex items-center">
                     <div class="w-16 bg-gray-200 rounded-full h-1.5 mr-2">
-                      <div 
+                      <div
                         class="bg-green-500 h-1.5 rounded-full transition-all duration-300"
-                        :style="{ width: questionnaire.completion_percentage + '%' }"
+                        :style="{
+                          width: questionnaire.completion_percentage + '%',
+                        }"
                       />
                     </div>
-                    <span class="text-xs text-gray-500">{{ questionnaire.completion_percentage }}%</span>
+                    <span class="text-xs text-gray-500"
+                      >{{ questionnaire.completion_percentage }}%</span
+                    >
                   </div>
                 </div>
                 <div class="flex items-center gap-1 mt-1 ml-6">
-                  <UIcon name="i-heroicons-calendar" class="h-3 w-3 text-gray-400" />
+                  <UIcon
+                    name="i-heroicons-calendar"
+                    class="h-3 w-3 text-gray-400"
+                  />
                   <p class="text-xs text-gray-400">
-                    Created {{ new Date(questionnaire.created_at).toLocaleDateString() }}
+                    Created
+                    {{
+                      new Date(questionnaire.created_at).toLocaleDateString()
+                    }}
                   </p>
                 </div>
               </div>
@@ -476,7 +542,7 @@ async function addStudent() {
     toast.add({
       title: "Validation Error",
       description: "Please fill in all fields",
-      color: "warning"
+      color: "warning",
     });
     return;
   }
@@ -494,18 +560,18 @@ async function addStudent() {
     await loadStudents();
     showAddModal.value = false;
     newStudent.value = { name: "", email: "" };
-    
+
     toast.add({
       title: "Success",
       description: "Student added successfully",
-      color: "success"
+      color: "success",
     });
   } catch (error) {
     console.error("Failed to add student:", error);
     toast.add({
       title: "Error",
       description: "Failed to add student. Please try again.",
-      color: "error"
+      color: "error",
     });
   } finally {
     adding.value = false;
@@ -528,7 +594,7 @@ async function openGroupsModal(student: Student) {
     toast.add({
       title: "Error",
       description: "Failed to load groups. Please try again.",
-      color: "error"
+      color: "error",
     });
   } finally {
     loadingGroups.value = false;
@@ -556,7 +622,7 @@ async function openQuestionnairesModal(student: Student) {
     toast.add({
       title: "Error",
       description: "Failed to load questionnaires. Please try again.",
-      color: "error"
+      color: "error",
     });
   } finally {
     loadingQuestionnaires.value = false;

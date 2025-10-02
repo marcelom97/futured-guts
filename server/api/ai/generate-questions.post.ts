@@ -59,15 +59,27 @@ For each question:
 
 Make questions clear, unbiased, and suitable for student team formation in educational settings.`;
 
-    const { object } = await generateObject({
-      model: bedrock("anthropic.claude-3-5-sonnet-20240620-v1:0"),
-      schema: QuestionsResponseSchema as any,
-      prompt,
-    });
+    let aiResponse;
+    try {
+      const result = await generateObject({
+        model: bedrock("anthropic.claude-3-5-sonnet-20240620-v1:0"),
+        schema: QuestionsResponseSchema,
+        mode: "json",
+        prompt,
+      });
+      aiResponse = result.object;
+    } catch (aiError: any) {
+      console.error("AI Generation Error:", aiError);
+      console.error("AI Error Details:", aiError.cause);
+      throw createError({
+        statusCode: 500,
+        message: `AI failed to generate valid questions: ${aiError.message}. Please try again.`,
+      });
+    }
 
     return {
       success: true,
-      questions: object.questions,
+      questions: aiResponse.questions,
     };
   } catch (error) {
     throw createError({
