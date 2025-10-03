@@ -18,19 +18,6 @@
           Joined {{ new Date(student.created_at).toLocaleDateString() }}
         </p>
       </div>
-
-      <div class="flex-shrink-0">
-        <UDropdown :items="actionItems" :popper="{ placement: 'bottom-end' }">
-          <UButton
-            color="neutral"
-            variant="outline"
-            icon="i-heroicons-ellipsis-vertical"
-            trailing-icon="i-heroicons-chevron-down"
-          >
-            Actions
-          </UButton>
-        </UDropdown>
-      </div>
     </div>
   </div>
 </template>
@@ -49,28 +36,6 @@ interface Props {
 }
 
 defineProps<Props>()
-
-const actionItems = [
-  [
-    {
-      label: 'Edit Student',
-      icon: 'i-heroicons-pencil',
-      click: () => console.log('Edit student')
-    },
-    {
-      label: 'Send Email',
-      icon: 'i-heroicons-envelope',
-      click: () => console.log('Send email')
-    }
-  ],
-  [
-    {
-      label: 'Remove Student',
-      icon: 'i-heroicons-trash',
-      click: () => console.log('Remove student')
-    }
-  ]
-]
 
 function getInitials(name: string): string {
   return name

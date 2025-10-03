@@ -38,6 +38,11 @@
           />
         </div>
 
+        <!-- Traits Analysis -->
+        <div v-if="student" class="mt-8">
+          <StudentTraitsChart :student-id="student.id" />
+        </div>
+
         <!-- Recent Activity -->
         <StudentActivitySection 
           :activities="recentActivity"
@@ -72,9 +77,9 @@ interface StudentQuestionnaire {
   id: number
   title: string
   description?: string
-  completed: boolean
-  completed_at?: string
-  responses_count: number
+  total_questions: number
+  answered_questions: number
+  completion_percentage: number
   created_at: string
 }
 
@@ -157,9 +162,9 @@ const studentStats = computed((): StudentStats => {
   const questionnaires = studentQuestionnaires.value
   return {
     total_questionnaires: questionnaires.length,
-    completed_questionnaires: questionnaires.filter(q => q.completed).length,
+    completed_questionnaires: questionnaires.filter(q => q.completion_percentage === 100).length,
     total_groups: studentGroups.value.length,
-    total_responses: questionnaires.reduce((sum, q) => sum + q.responses_count, 0)
+    total_responses: questionnaires.reduce((sum, q) => sum + q.answered_questions, 0)
   }
 })
 

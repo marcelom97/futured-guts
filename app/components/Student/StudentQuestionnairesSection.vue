@@ -35,11 +35,9 @@
               {{ questionnaire.description }}
             </p>
             <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
-              <span>{{ questionnaire.responses_count }} responses</span>
-              <span v-if="questionnaire.completed_at">
-                Completed {{ new Date(questionnaire.completed_at).toLocaleDateString() }}
-              </span>
-              <span v-else>
+              <span>{{ questionnaire.answered_questions }}/{{ questionnaire.total_questions }} responses</span>
+              <span>{{ questionnaire.completion_percentage }}% complete</span>
+              <span>
                 Started {{ new Date(questionnaire.created_at).toLocaleDateString() }}
               </span>
             </div>
@@ -47,10 +45,10 @@
           
           <div class="flex items-center gap-2">
             <UBadge
-              :color="questionnaire.completed ? 'success' : 'warning'"
+              :color="questionnaire.completion_percentage === 100 ? 'success' : 'warning'"
               variant="subtle"
             >
-              {{ questionnaire.completed ? 'Completed' : 'In Progress' }}
+              {{ questionnaire.completion_percentage === 100 ? 'Completed' : 'In Progress' }}
             </UBadge>
             
             <UButton
@@ -73,9 +71,9 @@ interface StudentQuestionnaire {
   id: number
   title: string
   description?: string
-  completed: boolean
-  completed_at?: string
-  responses_count: number
+  total_questions: number
+  answered_questions: number
+  completion_percentage: number
   created_at: string
 }
 
