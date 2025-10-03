@@ -14,13 +14,6 @@
           </div>
           <div class="flex items-center gap-2">
             <UButton
-              :variant="chartType === 'bar' ? 'solid' : 'outline'"
-              size="xs"
-              @click="chartType = 'bar'"
-            >
-              Bar Chart
-            </UButton>
-            <UButton
               :variant="chartType === 'radar' ? 'solid' : 'outline'"
               size="xs"
               @click="chartType = 'radar'"
@@ -71,13 +64,8 @@
       <div v-else class="space-y-6">
         <!-- Chart -->
         <div class="chart-wrapper" style="position: relative; height: 400px;">
-          <Bar
-            v-if="chartType === 'bar'"
-            :data="barChartData"
-            :options="barChartOptions"
-          />
           <Radar
-            v-else-if="chartType === 'radar'"
+            v-if="chartType === 'radar'"
             :data="radarChartData"
             :options="radarChartOptions"
           />
@@ -191,78 +179,9 @@ const props = defineProps<Props>()
 const loading = ref(true)
 const error = ref<string | null>(null)
 const traitsData = ref<TraitAnalytics[]>([])
-const chartType = ref<'bar' | 'radar' | 'pie'>('bar')
+const chartType = ref< 'radar' | 'pie'>('radar')
 
 // Chart data and options
-const barChartData = computed(() => {
-  if (!traitsData.value.length) return { labels: [], datasets: [] }
-
-  const labels = traitsData.value.map(trait => formatTraitName(trait.trait))
-  const avgScores = traitsData.value.map(trait => trait.avgScore)
-  const responseCounts = traitsData.value.map(trait => trait.responseCount)
-
-  return {
-    labels,
-    datasets: [
-      {
-        label: 'Average Score',
-        data: avgScores,
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 1,
-        yAxisID: 'y',
-      },
-      {
-        label: 'Response Count',
-        data: responseCounts,
-        backgroundColor: 'rgba(16, 185, 129, 0.5)',
-        borderColor: 'rgb(16, 185, 129)',
-        borderWidth: 1,
-        yAxisID: 'y1',
-      },
-    ]
-  }
-})
-
-const barChartOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'top' as const,
-    },
-    title: {
-      display: true,
-      text: 'Traits Analysis - Average Scores and Response Counts',
-    },
-  },
-  scales: {
-    y: {
-      type: 'linear' as const,
-      display: true,
-      position: 'left' as const,
-      title: {
-        display: true,
-        text: 'Average Score (1-5)',
-      },
-      min: 0,
-      max: 5,
-    },
-    y1: {
-      type: 'linear' as const,
-      display: true,
-      position: 'right' as const,
-      title: {
-        display: true,
-        text: 'Response Count',
-      },
-      grid: {
-        drawOnChartArea: false,
-      },
-    },
-  },
-}))
-
 const radarChartData = computed(() => {
   if (!traitsData.value.length) return { labels: [], datasets: [] }
 
