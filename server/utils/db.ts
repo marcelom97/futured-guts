@@ -1,20 +1,24 @@
-import Database from "better-sqlite3";
-import { join } from "path";
+import { Client } from "@libsql/client";
 
-let db: Database.Database | null = null;
+let db: Client | null = null;
+let isInitialized = false;
 
-export function getDatabase() {
+export async function getDatabase() {
   if (!db) {
-    const dbPath = join(process.cwd(), "data", "app.db");
-    db = new Database(dbPath);
-    initializeDatabase(db);
+    const { useTurso } = await import("./turso");
+    db = useTurso();
+
+    if (!isInitialized) {
+      await initializeDatabase(db);
+      isInitialized = true;
+    }
   }
   return db;
 }
 
-function initializeDatabase(db: Database.Database) {
+async function initializeDatabase(db: Client) {
   // Teachers table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS teachers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -24,7 +28,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Students table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS students (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -36,7 +40,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Questionnaires table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS questionnaires (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       teacher_id INTEGER NOT NULL,
@@ -48,7 +52,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Questions table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS questions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       questionnaire_id INTEGER NOT NULL,
@@ -64,7 +68,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Student responses table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS responses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       student_id INTEGER NOT NULL,
@@ -78,7 +82,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Groups table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS groups (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       questionnaire_id INTEGER NOT NULL,
@@ -89,7 +93,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Group members table
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS group_members (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       group_id INTEGER NOT NULL,
@@ -102,7 +106,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Trait weights table (for customizable grouping criteria)
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS trait_weights (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       questionnaire_id INTEGER NOT NULL,
@@ -114,7 +118,7 @@ function initializeDatabase(db: Database.Database) {
   `);
 
   // Grouping metadata table (stores AI analysis for groups)
-  db.exec(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS grouping_metadata (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       questionnaire_id INTEGER NOT NULL UNIQUE,
@@ -127,14 +131,15 @@ function initializeDatabase(db: Database.Database) {
 
   // Insert dummy teacher if none exists
   try {
-    const existingTeacher = db.prepare("SELECT id FROM teachers LIMIT 1").get();
-    if (!existingTeacher) {
-      const stmt = db.prepare(`
-        INSERT INTO teachers (name, email) 
-        VALUES (?, ?)
-      `);
-      const result = stmt.run("Demo Teacher", "demo@teacher.com");
-      console.log(`Created dummy teacher with ID: ${result.lastInsertRowid}`);
+    const result = await db.execute("SELECT id FROM teachers LIMIT 1");
+    if (result.rows.length === 0) {
+      const insertResult = await db.execute({
+        sql: "INSERT INTO teachers (name, email) VALUES (?, ?)",
+        args: ["Demo Teacher", "demo@teacher.com"],
+      });
+      console.log(
+        `Created dummy teacher with ID: ${insertResult.lastInsertRowid}`
+      );
     }
   } catch (error) {
     console.log("Teacher creation check failed:", error);

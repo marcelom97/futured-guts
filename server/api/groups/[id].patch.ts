@@ -5,30 +5,32 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { name, student_ids } = body;
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
     // Update group name if provided
     if (name) {
-      const stmt = db.prepare("UPDATE groups SET name = ? WHERE id = ?");
-      stmt.run(name, groupId);
+      await db.execute({
+        sql: "UPDATE groups SET name = ? WHERE id = ?",
+        args: [name, groupId],
+      });
     }
 
     // Update members if provided
     if (student_ids) {
-      db.transaction(() => {
-        // Remove existing members
-        const deleteStmt = db.prepare("DELETE FROM group_members WHERE group_id = ?");
-        deleteStmt.run(groupId);
+      // Use batch for transaction-like behavior
+      const statements = [
+        {
+          sql: "DELETE FROM group_members WHERE group_id = ?",
+          args: [groupId],
+        },
+        ...student_ids.map((studentId: any) => ({
+          sql: "INSERT INTO group_members (group_id, student_id) VALUES (?, ?)",
+          args: [groupId, studentId],
+        })),
+      ];
 
-        // Add new members
-        const insertStmt = db.prepare(
-          "INSERT INTO group_members (group_id, student_id) VALUES (?, ?)"
-        );
-        for (const studentId of student_ids) {
-          insertStmt.run(groupId, studentId);
-        }
-      })();
+      await db.batch(statements, "write");
     }
 
     return {
@@ -42,4 +44,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

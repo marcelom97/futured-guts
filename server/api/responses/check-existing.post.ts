@@ -11,36 +11,38 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
     // Check if student exists with this email
-    const student = db
-      .prepare("SELECT id FROM students WHERE email = ?")
-      .get(email) as { id: number } | undefined;
+    const studentResult = await db.execute({
+      sql: "SELECT id FROM students WHERE email = ?",
+      args: [email],
+    });
 
-    if (!student) {
+    if (studentResult.rows.length === 0) {
       // Student doesn't exist, so they haven't responded
       return {
         hasResponded: false,
       };
     }
 
+    const student = studentResult.rows[0] as any;
+
     // Check if this student has any responses to questions in this questionnaire
-    const existingResponse = db
-      .prepare(
-        `
-      SELECT r.id 
-      FROM responses r
-      JOIN questions q ON r.question_id = q.id
-      WHERE r.student_id = ? AND q.questionnaire_id = ?
-      LIMIT 1
-    `
-      )
-      .get(student.id, questionnaire_id);
+    const existingResult = await db.execute({
+      sql: `
+        SELECT r.id 
+        FROM responses r
+        JOIN questions q ON r.question_id = q.id
+        WHERE r.student_id = ? AND q.questionnaire_id = ?
+        LIMIT 1
+      `,
+      args: [student.id, questionnaire_id],
+    });
 
     return {
-      hasResponded: !!existingResponse,
+      hasResponded: existingResult.rows.length > 0,
       studentId: student.id,
     };
   } catch (error) {

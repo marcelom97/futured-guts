@@ -4,24 +4,22 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { questionnaire_id, trait_weights } = body;
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
-    db.transaction(() => {
-      // Remove existing weights
-      const deleteStmt = db.prepare(
-        "DELETE FROM trait_weights WHERE questionnaire_id = ?"
-      );
-      deleteStmt.run(questionnaire_id);
+    // Use batch for transaction-like behavior
+    const statements = [
+      {
+        sql: "DELETE FROM trait_weights WHERE questionnaire_id = ?",
+        args: [questionnaire_id],
+      },
+      ...trait_weights.map((tw: any) => ({
+        sql: "INSERT INTO trait_weights (questionnaire_id, trait, weight) VALUES (?, ?, ?)",
+        args: [questionnaire_id, tw.trait, tw.weight],
+      })),
+    ];
 
-      // Insert new weights
-      const insertStmt = db.prepare(
-        "INSERT INTO trait_weights (questionnaire_id, trait, weight) VALUES (?, ?, ?)"
-      );
-      for (const tw of trait_weights) {
-        insertStmt.run(questionnaire_id, tw.trait, tw.weight);
-      }
-    })();
+    await db.batch(statements, "write");
 
     return {
       success: true,
@@ -34,4 +32,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

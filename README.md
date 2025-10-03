@@ -41,7 +41,7 @@ A web-based platform that enables teachers to intelligently group students based
 - **Frontend**: Nuxt 3 + Vue 3 + TypeScript
 - **UI Components**: Nuxt UI (TailwindCSS)
 - **Backend**: Nuxt Server API
-- **Database**: SQLite (better-sqlite3)
+- **Database**: Turso (libSQL/SQLite)
 - **AI**: AWS Bedrock (Claude 3.5 Sonnet)
 - **AI SDK**: Vercel AI SDK
 
@@ -50,6 +50,7 @@ A web-based platform that enables teachers to intelligently group students based
 ### Prerequisites
 
 - Node.js 18+ and pnpm
+- Turso account and CLI
 - AWS credentials with Bedrock access
 
 ### Installation

@@ -1,28 +1,27 @@
 import { getDatabase } from "../../utils/db";
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const { teacher_id } = query;
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
-    let questionnaires;
+    let result;
     if (teacher_id) {
-      const stmt = db.prepare(
-        "SELECT * FROM questionnaires WHERE teacher_id = ? ORDER BY created_at DESC"
-      );
-      questionnaires = stmt.all(teacher_id);
+      result = await db.execute({
+        sql: "SELECT * FROM questionnaires WHERE teacher_id = ? ORDER BY created_at DESC",
+        args: [teacher_id],
+      });
     } else {
-      const stmt = db.prepare(
+      result = await db.execute(
         "SELECT * FROM questionnaires ORDER BY created_at DESC"
       );
-      questionnaires = stmt.all();
     }
 
     return {
       success: true,
-      questionnaires,
+      questionnaires: result.rows,
     };
   } catch (error) {
     throw createError({
@@ -31,4 +30,3 @@ export default defineEventHandler((event) => {
     });
   }
 });
-

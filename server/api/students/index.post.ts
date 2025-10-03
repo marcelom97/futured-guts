@@ -4,16 +4,18 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { name, email, teacher_id } = body;
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
     // First, check if a student with this email already exists
-    const existingStudent = db
-      .prepare("SELECT id FROM students WHERE email = ?")
-      .get(email) as { id: number } | undefined;
+    const existingResult = await db.execute({
+      sql: "SELECT id FROM students WHERE email = ?",
+      args: [email],
+    });
 
-    if (existingStudent) {
+    if (existingResult.rows.length > 0) {
       // Student already exists, return their existing ID
+      const existingStudent = existingResult.rows[0] as { id: number };
       return {
         success: true,
         student_id: existingStudent.id,
@@ -22,14 +24,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // Student doesn't exist, create a new one
-    const stmt = db.prepare(
-      "INSERT INTO students (name, email, teacher_id) VALUES (?, ?, ?)"
-    );
-    const result = stmt.run(name, email, teacher_id);
+    const result = await db.execute({
+      sql: "INSERT INTO students (name, email, teacher_id) VALUES (?, ?, ?)",
+      args: [name, email, teacher_id],
+    });
 
     return {
       success: true,
-      student_id: result.lastInsertRowid,
+      student_id: Number(result.lastInsertRowid),
       existing: false,
     };
   } catch (error) {
