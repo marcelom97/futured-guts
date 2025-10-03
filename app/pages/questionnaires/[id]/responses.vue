@@ -7,7 +7,7 @@
         icon="i-heroicons-arrow-left"
         class="mb-4"
       >
-        Back to Questionnaire
+        Back to {{ questionnaire?.title || 'Questionnaire' }}
       </UButton>
 
       <!-- Modular Page Header -->
@@ -48,9 +48,22 @@ const { data: responsesData, pending: loading } = await useFetch<{
   default: () => ({ success: false, responses: [] })
 });
 
+// Fetch questionnaire data for the back button
+const { data: questionnaireData } = await useFetch<{
+  success: boolean;
+  questionnaire: { id: number; title: string; description?: string; created_at: string } | null;
+}>(`/api/questionnaires/${route.params.id}`, {
+  default: () => ({ success: false, questionnaire: null })
+});
+
 // Compute responses from the fetched data
 const responses = computed(() => {
   return responsesData.value?.success ? responsesData.value.responses || [] : [];
+});
+
+// Compute questionnaire from the fetched data
+const questionnaire = computed(() => {
+  return questionnaireData.value?.success ? questionnaireData.value.questionnaire : null;
 });
 
 // Filter reactive variables

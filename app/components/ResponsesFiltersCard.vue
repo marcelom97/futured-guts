@@ -1,20 +1,5 @@
 <template>
-  <UCard class="mb-6">
-    <template #header>
-      <div class="flex items-center gap-2">
-        <UIcon name="i-heroicons-funnel" class="h-5 w-5 text-gray-400" />
-        <h3 class="text-lg font-medium text-gray-900">Filters</h3>
-        <UButton
-          v-if="hasActiveFilters"
-          variant="ghost"
-          size="xs"
-          icon="i-heroicons-x-mark"
-          @click="$emit('clearFilters')"
-        >
-          Clear All
-        </UButton>
-      </div>
-    </template>
+  <div class="mb-6">
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <!-- Student Name Filter -->
@@ -56,11 +41,23 @@
           :options="traitOptions"
           placeholder="Select trait..."
           class="w-full"
-          @update:model-value="$emit('update:filters', { ...filters, trait: $event })"
+          @update:model-value="$emit('update:filters', { ...filters, trait: String($event || '') })"
         />
       </div>
     </div>
-  </UCard>
+
+    <!-- Clear Filters Button (if needed) -->
+    <div v-if="hasActiveFilters" class="flex justify-end mb-4">
+      <UButton
+        variant="ghost"
+        size="xs"
+        icon="i-heroicons-x-mark"
+        @click="$emit('clearFilters')"
+      >
+        Clear Filters
+      </UButton>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
