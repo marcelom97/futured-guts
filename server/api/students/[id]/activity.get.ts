@@ -11,37 +11,43 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = getDatabase()
+    const db = await getDatabase()
 
     // Get recent activities for the student
     // This combines questionnaire responses and group memberships
-    const activities = db.prepare(`
-      SELECT 
-        'questionnaire' as type,
-        q.id,
-        q.title,
-        'Completed questionnaire: ' || q.title as description,
-        r.created_at as timestamp
-      FROM responses r
-      JOIN questionnaires q ON r.questionnaire_id = q.id
-      WHERE r.student_id = ?
-      
-      UNION ALL
-      
-      SELECT 
-        'group' as type,
-        g.id,
-        g.name as title,
-        'Joined group: ' || g.name || ' for ' || q.title as description,
-        gm.created_at as timestamp
-      FROM group_members gm
-      JOIN groups g ON gm.group_id = g.id
-      JOIN questionnaires q ON g.questionnaire_id = q.id
-      WHERE gm.student_id = ?
-      
-      ORDER BY timestamp DESC
-      LIMIT 10
-    `).all(studentId, studentId)
+    const result = await db.execute({
+      sql: `
+        SELECT 
+          'questionnaire' as type,
+          q.id,
+          q.title,
+          'Completed questionnaire: ' || q.title as description,
+          r.created_at as timestamp
+        FROM responses r
+        JOIN questions que ON r.question_id = que.id
+        JOIN questionnaires q ON que.questionnaire_id = q.id
+        WHERE r.student_id = ?
+        
+        UNION ALL
+        
+        SELECT 
+          'group' as type,
+          g.id,
+          g.name as title,
+          'Joined group: ' || g.name || ' for ' || q.title as description,
+          gm.created_at as timestamp
+        FROM group_members gm
+        JOIN groups g ON gm.group_id = g.id
+        JOIN questionnaires q ON g.questionnaire_id = q.id
+        WHERE gm.student_id = ?
+        
+        ORDER BY timestamp DESC
+        LIMIT 10
+      `,
+      args: [studentId, studentId]
+    })
+
+    const activities = result.rows
 
     return {
       success: true,

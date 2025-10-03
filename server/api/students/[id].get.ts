@@ -11,26 +11,31 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = getDatabase()
+    const db = await getDatabase()
 
     // Get student details
-    const student = db.prepare(`
-      SELECT 
-        id,
-        name,
-        email,
-        teacher_id,
-        created_at
-      FROM students 
-      WHERE id = ?
-    `).get(studentId)
+    const result = await db.execute({
+      sql: `
+        SELECT 
+          id,
+          name,
+          email,
+          teacher_id,
+          created_at
+        FROM students 
+        WHERE id = ?
+      `,
+      args: [studentId]
+    })
 
-    if (!student) {
+    if (result.rows.length === 0) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Student not found'
       })
     }
+
+    const student = result.rows[0]
 
     return {
       success: true,

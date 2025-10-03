@@ -131,6 +131,9 @@
           </template>
         </UModal>
 
+        <!-- Traits Chart -->
+        <TraitsChart :questionnaire-id="route.params.id as string" />
+
         <!-- Questions List -->
         <UCard>
           <template #header>
