@@ -38,7 +38,7 @@
         </UButton>
         <UButton
           :to="`/questionnaires/${questionnaire?.id}/groups`"
-          variant="soft"
+          variant="outline"
           size="sm"
           icon="i-heroicons-users"
         >

@@ -81,7 +81,6 @@
                 :loading="generating"
                 :disabled="generating"
                 color="primary"
-                variant="soft"
                 icon="i-heroicons-sparkles"
               >
                 {{ generating ? "Generating..." : "Generate with AI" }}

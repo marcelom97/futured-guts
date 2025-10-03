@@ -13,7 +13,7 @@
       <div v-if="loading" class="text-center py-12">
         <div
           class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"
-        ></div>
+        />
       </div>
 
       <div v-else-if="questionnaire">
@@ -29,37 +29,48 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex gap-3 mb-8">
+        <div class="flex gap-3 mb-8 justify-between">
+          <div class="flex gap-3">
+            <UButton
+              :to="`/questionnaires/${route.params.id}/responses`"
+              color="primary"
+              icon="i-heroicons-document-text"
+            >
+              View Responses
+            </UButton>
+            <UButton
+              :to="`/questionnaires/${route.params.id}/groups`"
+              color="primary"
+              icon="i-heroicons-user-group"
+            >
+              Generate Groups
+            </UButton>
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-heroicons-link"
+              @click="copyStudentLink"
+            >
+              Copy Student Link
+            </UButton>
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-heroicons-qr-code"
+              @click="showQRCodeModal = true"
+            >
+              Show QR Code
+            </UButton>
+          </div>
+          
+          <!-- Print Button (Far Right) -->
           <UButton
-            :to="`/questionnaires/${route.params.id}/responses`"
-            color="primary"
-            icon="i-heroicons-document-text"
-          >
-            View Responses
-          </UButton>
-          <UButton
-            :to="`/questionnaires/${route.params.id}/groups`"
-            color="primary"
-            variant="soft"
-            icon="i-heroicons-user-group"
-          >
-            Generate Groups
-          </UButton>
-          <UButton
-            @click="copyStudentLink"
             color="neutral"
             variant="outline"
-            icon="i-heroicons-link"
+            icon="i-heroicons-printer"
+            @click="printQuestionnaire"
           >
-            Copy Student Link
-          </UButton>
-          <UButton
-            @click="showQRCodeModal = true"
-            color="neutral"
-            variant="outline"
-            icon="i-heroicons-qr-code"
-          >
-            Show QR Code
+            Print
           </UButton>
         </div>
 
@@ -74,7 +85,7 @@
               <!-- QR Code Display -->
               <div class="flex flex-col items-center">
                 <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
-                  <canvas ref="qrCanvas" class="mx-auto"></canvas>
+                  <canvas ref="qrCanvas" class="mx-auto" />
                 </div>
                 <p class="mt-4 text-sm text-gray-600 text-center max-w-md">
                   Students can scan this QR code to access the questionnaire
@@ -89,9 +100,9 @@
                 <div class="flex gap-2">
                   <UInput :model-value="studentLink" readonly class="flex-1" />
                   <UButton
-                    @click="copyStudentLink"
                     variant="outline"
                     icon="i-heroicons-clipboard-document"
+                    @click="copyStudentLink"
                   >
                     Copy
                   </UButton>
@@ -103,16 +114,16 @@
           <template #footer>
             <div class="flex items-center justify-end gap-3">
               <UButton
-                @click="showQRCodeModal = false"
                 color="neutral"
                 variant="outline"
+                @click="showQRCodeModal = false"
               >
                 Close
               </UButton>
               <UButton
-                @click="downloadQRCode"
                 color="primary"
                 icon="i-heroicons-arrow-down-tray"
+                @click="downloadQRCode"
               >
                 Download QR Code
               </UButton>
@@ -176,6 +187,7 @@
 
 <script setup lang="ts">
 import QRCode from "qrcode";
+import { printQuestionnaire as printQuestionnaireUtil } from "../../../../utils/print";
 
 interface Question {
   id: number;
@@ -357,5 +369,9 @@ function formatTraits(traits: string | string[]): string {
 function formatWeight(weight: number): string {
   if (weight === 1 || weight === 1.0) return "Standard";
   return `${weight.toFixed(1)}x`;
+}
+
+function printQuestionnaire() {
+  printQuestionnaireUtil(questionnaire.value);
 }
 </script>

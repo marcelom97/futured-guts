@@ -25,11 +25,10 @@
           icon="i-heroicons-document-chart-bar"
           @click.stop
         >
-          Responses
+          View Responses
         </UButton>
         <UButton
           :to="`/questionnaires/${questionnaire.id}/groups`"
-          variant="soft"
           size="sm"
           icon="i-heroicons-users"
           @click.stop
