@@ -251,13 +251,13 @@ PORT=3001 pnpm dev
 
 **Group Size**: 4-5 students per group
 
-### Scenario 2: Research Paper Groups
+### Scenario 2: Marketing Campaign Project
 
-**Questionnaire Focus**: `research methods, writing, analysis, organization, collaboration`
+**Questionnaire Focus**: `creativity, data analysis, communication, social media, presentation skills`
 
 **Number of Questions**: 8
 
-**Strategy**: Diverse (to bring different research perspectives together)
+**Strategy**: Diverse (to bring different marketing perspectives and strengths together)
 
 **Group Size**: 3-4 students per group
 
