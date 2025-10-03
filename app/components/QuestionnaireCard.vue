@@ -18,29 +18,6 @@
         </div>
       </div>
 
-      <!-- Middle Section: Progress Info -->
-      <div class="flex-1 max-w-xs">
-        <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
-          <span>{{ questionnaire.responses_count || 0 }} students responded</span>
-          <span v-if="questionnaire.total_students && questionnaire.total_students > 0">{{ getProgressPercentage() }}%</span>
-        </div>
-        
-        <!-- Compact Progress Bar (only show if we have total students) -->
-        <div v-if="questionnaire.total_students && questionnaire.total_students > 0" class="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            class="bg-blue-500 h-2 rounded-full transition-all duration-300"
-            :style="{ width: `${getProgressPercentage()}%` }"
-          />
-        </div>
-        <!-- Activity indicator when no total student count -->
-        <div v-else-if="questionnaire.responses_count && questionnaire.responses_count > 0" class="w-full bg-gray-200 rounded-full h-2">
-          <div class="bg-green-500 h-2 rounded-full w-full animate-pulse" />
-        </div>
-        
-        <div v-if="questionnaire.responses_count && questionnaire.responses_count > 0" class="text-xs text-gray-400 mt-1 text-center">
-          Last response {{ formatRelativeTime(questionnaire.last_response_at) }}
-        </div>
-      </div>
 
       <!-- Right Section: Action Buttons -->
       <div class="flex items-center gap-2 flex-shrink-0">
