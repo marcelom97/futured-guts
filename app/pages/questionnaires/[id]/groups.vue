@@ -34,9 +34,9 @@
           </div>
         </template>
 
-        <div class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-shrink-0">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Number of Groups
               </label>
@@ -46,10 +46,11 @@
                 min="2"
                 max="10"
                 size="lg"
+                class="w-32"
               />
             </div>
 
-            <div>
+            <div class="flex-shrink-0">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Grouping Strategy
               </label>
@@ -57,6 +58,7 @@
                 v-model="groupingStrategy"
                 :items="strategies"
                 size="lg"
+                class="w-48"
               />
             </div>
           </div>
