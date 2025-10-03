@@ -251,18 +251,18 @@
                           @blur="validateQuestion(index)"
                         />
                         <UButton
-                          @click="question.options.splice(optIndex, 1)"
-                          color="error"
-                          variant="ghost"
-                          icon="i-heroicons-trash"
+                        color="error"
+                        variant="ghost"
+                        icon="i-heroicons-trash"
+                        @click="question.options?.splice(optIndex, 1)"
                         />
                       </div>
                       <UButton
-                        @click="question.options.push('')"
-                        color="neutral"
-                        variant="outline"
-                        size="sm"
-                        icon="i-heroicons-plus"
+                      color="neutral"
+                      variant="outline"
+                      size="sm"
+                      icon="i-heroicons-plus"
+                      @click="question.options?.push('')"
                       >
                         Add Option
                       </UButton>
@@ -286,14 +286,14 @@
               to="/"
               color="neutral"
               variant="outline"
-              :disabled="saving"
+              :disabled="saving || questions.length === 0"
             >
               Cancel
             </UButton>
             <UButton
-              @click="saveQuestionnaire"
               :loading="saving"
-              :disabled="saving"
+              :disabled="saving || questions.length === 0"
+              @click="saveQuestionnaire"
               color="primary"
               icon="i-heroicons-check"
             >
