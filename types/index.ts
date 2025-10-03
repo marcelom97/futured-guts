@@ -19,6 +19,9 @@ export interface Questionnaire {
   title: string;
   description?: string;
   created_at: string;
+  responses_count?: number;
+  total_students?: number;
+  last_response_at?: string;
 }
 
 export type QuestionType =
