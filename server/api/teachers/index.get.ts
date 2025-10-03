@@ -1,15 +1,15 @@
 import { getDatabase } from "../../utils/db";
 
 export default defineEventHandler(async (_event) => {
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
-    const teachers = db.prepare('SELECT * FROM teachers').all();
-    
+    const result = await db.execute("SELECT * FROM teachers");
+
     return {
       success: true,
-      teachers,
-      count: teachers.length
+      teachers: result.rows,
+      count: result.rows.length,
     };
   } catch (error) {
     throw createError({

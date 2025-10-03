@@ -19,33 +19,37 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { questionnaire_id, num_groups, grouping_strategy = "balanced" } = body;
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
     // Get questionnaire details
-    const questionnaireStmt = db.prepare(
-      "SELECT * FROM questionnaires WHERE id = ?"
-    );
-    const questionnaire = questionnaireStmt.get(questionnaire_id) as any;
+    const questionnaireResult = await db.execute({
+      sql: "SELECT * FROM questionnaires WHERE id = ?",
+      args: [questionnaire_id],
+    });
 
-    if (!questionnaire) {
+    if (questionnaireResult.rows.length === 0) {
       throw createError({
         statusCode: 404,
         message: "Questionnaire not found",
       });
     }
 
+    const questionnaire = questionnaireResult.rows[0] as any;
+
     // Get all questions
-    const questionsStmt = db.prepare(
-      "SELECT * FROM questions WHERE questionnaire_id = ?"
-    );
-    const questions = questionsStmt.all(questionnaire_id) as any[];
+    const questionsResult = await db.execute({
+      sql: "SELECT * FROM questions WHERE questionnaire_id = ?",
+      args: [questionnaire_id],
+    });
+    const questions = questionsResult.rows as any[];
 
     // Get trait weights
-    const weightsStmt = db.prepare(
-      "SELECT * FROM trait_weights WHERE questionnaire_id = ?"
-    );
-    const traitWeights = weightsStmt.all(questionnaire_id) as any[];
+    const weightsResult = await db.execute({
+      sql: "SELECT * FROM trait_weights WHERE questionnaire_id = ?",
+      args: [questionnaire_id],
+    });
+    const traitWeights = weightsResult.rows as any[];
     const weightMap = Object.fromEntries(
       traitWeights.map((tw) => [tw.trait, tw.weight])
     );
@@ -60,24 +64,28 @@ export default defineEventHandler(async (event) => {
     }
 
     const placeholders = questionIds.map(() => "?").join(",");
-    const responsesStmt = db.prepare(`
-      SELECT r.*, s.name as student_name, s.id as student_id, 
-             q.trait, q.category, q.weight, q.question_type
-      FROM responses r
-      JOIN students s ON r.student_id = s.id
-      JOIN questions q ON r.question_id = q.id
-      WHERE r.question_id IN (${placeholders})
-    `);
-    const responses = responsesStmt.all(...questionIds) as any[];
+    const responsesResult = await db.execute({
+      sql: `
+        SELECT r.*, s.name as student_name, s.id as student_id, 
+               q.trait, q.category, q.weight, q.question_type
+        FROM responses r
+        JOIN students s ON r.student_id = s.id
+        JOIN questions q ON r.question_id = q.id
+        WHERE r.question_id IN (${placeholders})
+      `,
+      args: questionIds,
+    });
+    const responses = responsesResult.rows as any[];
 
     // Get unique students who completed the questionnaire
     const studentIds = [...new Set(responses.map((r) => r.student_id))];
-    const studentsStmt = db.prepare(`
-      SELECT * FROM students WHERE id IN (${studentIds
+    const studentsResult = await db.execute({
+      sql: `SELECT * FROM students WHERE id IN (${studentIds
         .map(() => "?")
-        .join(",")})
-    `);
-    const students = studentsStmt.all(...studentIds) as any[];
+        .join(",")})`,
+      args: studentIds,
+    });
+    const students = studentsResult.rows as any[];
 
     // Validate we have enough students
     if (students.length === 0) {
@@ -208,48 +216,52 @@ Also provide:
       });
     }
 
-    // Delete old groups and members in a transaction
-    const deleteOldGroups = db.transaction(() => {
-      // First, get all group IDs for this questionnaire
-      const getGroupsStmt = db.prepare(
-        "SELECT id FROM groups WHERE questionnaire_id = ?"
-      );
-      const existingGroups = getGroupsStmt.all(questionnaire_id) as any[];
-
-      if (existingGroups.length > 0) {
-        const groupIds = existingGroups.map((g) => g.id);
-        const placeholders = groupIds.map(() => "?").join(",");
-
-        // Delete group members first (foreign key constraint)
-        const deleteMembersStmt = db.prepare(
-          `DELETE FROM group_members WHERE group_id IN (${placeholders})`
-        );
-        deleteMembersStmt.run(...groupIds);
-
-        // Then delete the groups
-        const deleteGroupsStmt = db.prepare(
-          `DELETE FROM groups WHERE questionnaire_id = ?`
-        );
-        deleteGroupsStmt.run(questionnaire_id);
-      }
+    // Delete old groups and members
+    // First, get all group IDs for this questionnaire
+    const existingGroupsResult = await db.execute({
+      sql: "SELECT id FROM groups WHERE questionnaire_id = ?",
+      args: [questionnaire_id],
     });
+    const existingGroups = existingGroupsResult.rows as any[];
 
-    deleteOldGroups();
+    if (existingGroups.length > 0) {
+      const groupIds = existingGroups.map((g) => g.id);
+      const placeholders = groupIds.map(() => "?").join(",");
+
+      // Delete using batch for transaction-like behavior
+      await db.batch(
+        [
+          {
+            sql: `DELETE FROM group_members WHERE group_id IN (${placeholders})`,
+            args: groupIds,
+          },
+          {
+            sql: `DELETE FROM groups WHERE questionnaire_id = ?`,
+            args: [questionnaire_id],
+          },
+        ],
+        "write"
+      );
+    }
 
     // Save new groups to database
     const savedGroups = [];
     for (const group of aiResponse.groups) {
-      const groupStmt = db.prepare(
-        "INSERT INTO groups (questionnaire_id, name) VALUES (?, ?)"
-      );
-      const groupResult = groupStmt.run(questionnaire_id, group.name);
-      const groupId = groupResult.lastInsertRowid;
+      const groupResult = await db.execute({
+        sql: "INSERT INTO groups (questionnaire_id, name) VALUES (?, ?)",
+        args: [questionnaire_id, group.name],
+      });
+      const groupId = Number(groupResult.lastInsertRowid);
 
-      const memberStmt = db.prepare(
-        "INSERT INTO group_members (group_id, student_id) VALUES (?, ?)"
-      );
-      for (const studentId of group.student_ids) {
-        memberStmt.run(groupId, studentId);
+      // Insert all members using batch
+      if (group.student_ids.length > 0) {
+        await db.batch(
+          group.student_ids.map((studentId: number) => ({
+            sql: "INSERT INTO group_members (group_id, student_id) VALUES (?, ?)",
+            args: [groupId, studentId],
+          })),
+          "write"
+        );
       }
 
       savedGroups.push({
@@ -261,20 +273,22 @@ Also provide:
     }
 
     // Save or update grouping metadata
-    const metadataStmt = db.prepare(`
-      INSERT INTO grouping_metadata (questionnaire_id, balance_score, diversity_explanation, updated_at)
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(questionnaire_id) 
-      DO UPDATE SET 
-        balance_score = excluded.balance_score,
-        diversity_explanation = excluded.diversity_explanation,
-        updated_at = CURRENT_TIMESTAMP
-    `);
-    metadataStmt.run(
-      questionnaire_id,
-      aiResponse.balance_score,
-      aiResponse.diversity_explanation
-    );
+    await db.execute({
+      sql: `
+        INSERT INTO grouping_metadata (questionnaire_id, balance_score, diversity_explanation, updated_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(questionnaire_id) 
+        DO UPDATE SET 
+          balance_score = excluded.balance_score,
+          diversity_explanation = excluded.diversity_explanation,
+          updated_at = CURRENT_TIMESTAMP
+      `,
+      args: [
+        questionnaire_id,
+        aiResponse.balance_score,
+        aiResponse.diversity_explanation,
+      ],
+    });
 
     return {
       success: true,

@@ -19,4 +19,10 @@ export default defineNuxtConfig({
   ui: {
     colorMode: false,
   },
+  runtimeConfig: {
+    turso: {
+      databaseUrl: "", // can be overridden by NUXT_TURSO_DATABASE_URL
+      authToken: "", // can be overridden by NUXT_TURSO_AUTH_TOKEN
+    },
+  },
 });

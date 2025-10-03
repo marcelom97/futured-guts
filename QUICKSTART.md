@@ -5,6 +5,7 @@ This guide will help you get the Intelligent Student Grouping Platform up and ru
 ## Prerequisites
 
 - Node.js 18+ and pnpm installed
+- Turso account and CLI installed
 - AWS account with Bedrock access
 - Claude 3.5 Sonnet model enabled in your AWS region
 
@@ -16,19 +17,65 @@ This guide will help you get the Intelligent Student Grouping Platform up and ru
 pnpm install
 ```
 
-### 2. Configure AWS Credentials
+### 2. Set Up Turso Database
 
-Create a `.env` file in the root directory (or use environment variables):
+This application uses Turso as the database. Follow these steps to set it up:
+
+#### Install Turso CLI
 
 ```bash
+curl -sSfL https://get.tur.so/install.sh | bash
+```
+
+#### Sign up or login to Turso
+
+```bash
+turso auth signup
+# or if you already have an account
+turso auth login
+```
+
+#### Create a new database
+
+```bash
+turso db create futured-guts
+```
+
+#### Get your database credentials
+
+Get the database URL:
+
+```bash
+turso db show --url futured-guts
+```
+
+Get the authentication token:
+
+```bash
+turso db tokens create futured-guts
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory:
+
+```bash
+# Turso Database Configuration
+NUXT_TURSO_DATABASE_URL=<your-database-url-from-step-2>
+NUXT_TURSO_AUTH_TOKEN=<your-auth-token-from-step-2>
+
+# AWS Bedrock Configuration
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=your_access_key_here
 AWS_SECRET_ACCESS_KEY=your_secret_key_here
 ```
 
-Note: Make sure your AWS account has access to Amazon Bedrock and the Claude 3.5 Sonnet model is enabled in your region.
+**Important Notes:**
 
-### 3. Start the Development Server
+- The database schema will be automatically initialized on first run
+- Make sure your AWS account has access to Amazon Bedrock and the Claude 3.5 Sonnet model is enabled in your region
+
+### 4. Start the Development Server
 
 ```bash
 pnpm dev
@@ -88,6 +135,7 @@ The application will start at http://localhost:3000
 ### Generated Groups
 
 The AI will create balanced teams and provide:
+
 - **Group composition**: Students assigned to each team
 - **Balance score**: How well-balanced the groups are (0-100)
 - **AI analysis**: Explanation of the grouping decisions
@@ -242,4 +290,3 @@ Before deploying to production:
 7. Add rate limiting for AI endpoints
 
 Happy grouping! 🎓
-

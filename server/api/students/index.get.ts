@@ -1,16 +1,17 @@
 import { getDatabase } from "../../utils/db";
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const { teacher_id } = query;
 
-  const db = getDatabase();
+  const db = await getDatabase();
 
   try {
-    let students;
+    let result;
     if (teacher_id) {
       // Get students with group count and questionnaire count
-      const stmt = db.prepare(`
+      result = await db.execute({
+        sql: `
         SELECT 
           s.*,
           COALESCE(gm_count.group_count, 0) as group_count,
@@ -38,11 +39,12 @@ export default defineEventHandler((event) => {
         ) q_count ON s.id = q_count.student_id
         WHERE s.teacher_id = ?
         ORDER BY s.name
-      `);
-      students = stmt.all(teacher_id, teacher_id, teacher_id);
+      `,
+        args: [teacher_id, teacher_id, teacher_id],
+      });
     } else {
       // Get all students with group count and questionnaire count
-      const stmt = db.prepare(`
+      result = await db.execute(`
         SELECT 
           s.*,
           COALESCE(gm_count.group_count, 0) as group_count,
@@ -68,12 +70,11 @@ export default defineEventHandler((event) => {
         ) q_count ON s.id = q_count.student_id
         ORDER BY s.name
       `);
-      students = stmt.all();
     }
 
     return {
       success: true,
-      students,
+      students: result.rows,
     };
   } catch (error) {
     throw createError({
@@ -82,4 +83,3 @@ export default defineEventHandler((event) => {
     });
   }
 });
-
