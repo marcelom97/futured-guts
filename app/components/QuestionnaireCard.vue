@@ -9,7 +9,6 @@
           <UIcon name="i-heroicons-document-text" class="h-5 w-5 text-gray-400" />
           <h3 class="text-lg font-medium text-gray-900">{{ questionnaire.title }}</h3>
         </div>
-        <p class="mt-1 text-sm text-gray-500">{{ questionnaire.description }}</p>
         <div class="flex items-center gap-1 mt-2">
           <UIcon name="i-heroicons-calendar" class="h-3 w-3 text-gray-400" />
           <p class="text-xs text-gray-400">

@@ -7,7 +7,7 @@
         icon="i-heroicons-arrow-left"
         class="mb-4"
       >
-        Back to {{ questionnaire?.title || 'Questionnaire' }}
+        Back to {{ 'Questionnaire '+questionnaire?.title || 'Questionnaire' }}
       </UButton>
 
       <!-- Modular Page Header -->

@@ -7,7 +7,7 @@
         icon="i-heroicons-arrow-left"
         class="mb-4"
       >
-        Back to Questionnaire
+        Back to {{ 'Questionnaire '+questionnaire?.title || 'Questionnaire' }}
       </UButton>
 
       <div class="mb-8">
@@ -217,6 +217,20 @@ const balanceScore = computed(() => {
 const diversityExplanation = computed(() => {
   return groupsResponse.value.success ? groupsResponse.value.diversity_explanation || "" : "";
 });
+
+// Fetch questionnaire data for the back button
+const { data: questionnaireData } = await useFetch<{
+  success: boolean;
+  questionnaire: { id: number; title: string; description?: string; created_at: string } | null;
+}>(`/api/questionnaires/${route.params.id}`, {
+  default: () => ({ success: false, questionnaire: null })
+});
+
+// Compute questionnaire from the fetched data
+const questionnaire = computed(() => {
+  return questionnaireData.value?.success ? questionnaireData.value.questionnaire : null;
+});
+
 
 const generating = ref(false);
 const showControls = ref(false);
